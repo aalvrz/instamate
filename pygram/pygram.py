@@ -1,7 +1,16 @@
-from .auth import Authenticator
+import logging
+
+from selenium.common.exceptions import WebDriverException
+
+from .auth import Authenticator, AuthenticationError
 from .browser import PygramBrowserFactory
 from .constants import INSTAGRAM_HOMEPAGE_URL
+from .users import InstagramUser
 from .workspace import UserWorkspace
+
+
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 
 
 class Pygram:
@@ -39,4 +48,14 @@ class Pygram:
         self.browser.get(INSTAGRAM_HOMEPAGE_URL)
 
         authenticator = Authenticator(self.username, self.password, self.browser)
-        authenticator.login()
+        try:
+            authenticator.login()
+        except AuthenticationError as ex:
+            logger.error(f'Error while trying to log in: {ex}')
+            return
+
+        logger.info('Logged in successfully.')
+
+    def get_user_followers(self, username: str) -> int:
+        user = InstagramUser(username)
+        return user.get_followers_count()
