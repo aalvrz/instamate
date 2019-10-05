@@ -25,7 +25,7 @@ class InstagramUser:
 
     @lru_cache(maxsize=128)
     def get_followers_count(self) -> int:
-        """Returns the number of follower's of this user."""
+        """Returns the number of followers of this user."""
 
         try:
             followers_count = self.browser.execute_script(
@@ -33,6 +33,20 @@ class InstagramUser:
                 'ProfilePage[0].graphql.user.edge_followed_by.count'
             )
         except WebDriverException:
-            raise InstagramUserOperationError("Failed to get {self.username}'s followers.")
+            raise InstagramUserOperationError("Failed to get {self.username}'s follower count.")
 
         return int(followers_count)
+
+    @lru_cache(maxsize=128)
+    def get_followings_count(self) -> int:
+        """Returns the number of followings of this user."""
+
+        try:
+            following_count = browser.execute_script(
+                'return window._sharedData.entry_data.'
+                'ProfilePage[0].graphql.user.edge_follow.count'
+            )
+        except WebDriverException:
+            raise InstagramUserOperationError("Failed to get {self.username}'s following count.")
+
+        return int(following_count)
