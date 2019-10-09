@@ -1,10 +1,10 @@
 import time
-from functools import lru_cache
 
 from selenium.common.exceptions import (
     MoveTargetOutOfBoundsException,
     NoSuchElementException,
     TimeoutException,
+    WebDriverException,
 )
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -37,6 +37,10 @@ class Authenticator:
         self._cookie_loaded = False
 
     def login(self):
+        self._login_using_cookie()
+        if self.is_user_logged_in():
+            return
+
         login_element = self._find_create_account_or_login_div()
         self._click_login_element(login_element)
 
@@ -53,6 +57,14 @@ class Authenticator:
         time.sleep(1)
 
         self._press_login_button(password_input_element)
+
+    def _login_using_cookie(self):
+        # We will first try to log the user in using a cookie. If the login is
+        # successful, the user should show as logged in after refreshing the
+        # page.
+        self._load_user_cookies()
+        self.browser.execute_script('location.reload()')
+        time.sleep(2)
 
     def _find_create_account_or_login_div(self):
         """
@@ -142,6 +154,14 @@ class Authenticator:
             .perform()
         )
 
+    def _load_user_cookies(self):
+        """
+        Load a user cookies that already contain session data.
+        """
+        for cookie in self._user_workspace.get_cookies():
+            self.browser.add_cookie(cookie)
+            self._cookie_loaded = True
+
     def _store_user_cookies(self):
         """
         Create session cookies for user and store it in the user's workspace.
@@ -149,9 +169,38 @@ class Authenticator:
         if self.is_logged_in:
             self._user_workspace.store_cookies(self.browser.get_cookies())
 
-    @property
-    @lru_cache(maxsize=128)
-    def is_logged_in(self):
-        # User is logged in if there are two nav elements
-        navs = self.browser.find_elements_by_xpath('//nav')
-        return len(navs) == 2
+    def is_user_logged_in(self) -> bool:
+        # Check using activity counts
+        # If user is not logged in, JavaScript will return null for activity
+        # counts.
+        try:
+            activity_counts = self.browser.execute_script(
+                'return window._sharedData.activity_counts'
+            )
+        except WebDriverException:
+            try:
+                self.browser.excecute_script('location.reload()')
+                # TODO: Update activity
+                activity_counts = self.browser.execute_script(
+                    'return window._sharedData.activity_counts'
+                )
+            except WebDriverException:
+                activity_counts = None
+
+        try:
+            activity_counts_new = self.browser.execute_script(
+                'return window._sharedData.config.viewer'
+            )
+        except WebDriverException:
+            try:
+                self.browser.execute_script('location.reload()')
+                activity_counts_new = self.browser.execute_script(
+                    'return window._sharedData.config.viewer'
+                )
+            except WebDriverException:
+                activity_counts_new = None
+
+        if activity_counts is None and activity_counts_new is None:
+            return False
+
+        return True

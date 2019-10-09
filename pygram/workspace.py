@@ -14,6 +14,12 @@ class WorkspaceAlreadyExistsException(PygramException):
     """
 
 
+class CookiesFileNotFoundError(PygramException):
+    """
+    Raised when trying to load cookies from file but file does not exist.
+    """
+
+
 class UserWorkspace:
     """
     A Instagram user workspace where session cookies and interaction data
@@ -41,17 +47,22 @@ class UserWorkspace:
         Searches for and returns available cookies from the workspace.
         """
 
-        return [
-            cookie
-            for cookie in
-            pickle.load(open(self._cookie_file_name, 'rb'))
-        ]
+        try:
+            cookies = [
+                cookie
+                for cookie in
+                pickle.load(open(self._cookie_path, 'rb'))
+            ]
+        except FileNotFoundError:
+            raise CookiesFileNotFoundError
+
+        return cookies
 
     def store_cookies(self, cookies):
         """Store cookies in the user workspace."""
         pickle.dump(
             cookies,
-            open(self._cookie_file_name, 'wb')
+            open(self._cookie_path, 'wb')
         )
 
     @property
