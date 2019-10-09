@@ -1,7 +1,5 @@
 import logging
 
-from selenium.common.exceptions import WebDriverException
-
 from .auth import Authenticator, AuthenticationError
 from .browser import PygramBrowserFactory
 from .constants import INSTAGRAM_HOMEPAGE_URL
@@ -57,5 +55,5 @@ class Pygram:
         logger.info('Logged in successfully.')
 
     def get_user_followers(self, username: str) -> int:
-        user = InstagramUser(username)
-        return user.get_followers_count()
+        user = InstagramUser(username, self.browser)
+        return user.get_followers()
