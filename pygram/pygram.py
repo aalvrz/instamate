@@ -1,7 +1,7 @@
 import logging
 
 from .auth import Authenticator, AuthenticationError
-from .browser import PygramBrowserFactory
+from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .users import InstagramUser
 from .workspace import UserWorkspace
@@ -24,15 +24,14 @@ class Pygram:
         self.workspace = UserWorkspace(self.username)
         self._create_user_workspace()
 
-        self.browser = PygramBrowserFactory.firefox_browser()
-        self.browser.implicitly_wait(5)
+        get_browser().implicitly_wait(5)
 
         self._login()
 
         return self
 
     def __exit__(self, type, value, traceback):
-        self.browser.quit()
+        get_browser().quit()
 
     def _create_user_workspace(self):
         if not self.workspace.exists:
@@ -43,9 +42,9 @@ class Pygram:
         Login the user using the crendetials provided.
         """
 
-        self.browser.get(INSTAGRAM_HOMEPAGE_URL)
+        get_browser().get(INSTAGRAM_HOMEPAGE_URL)
 
-        authenticator = Authenticator(self.username, self.password, self.browser)
+        authenticator = Authenticator(self.username, self.password)
         try:
             authenticator.login()
         except AuthenticationError as ex:
@@ -55,5 +54,5 @@ class Pygram:
         logger.info('Logged in successfully.')
 
     def get_user_followers(self, username: str) -> int:
-        user = InstagramUser(username, self.browser)
+        user = InstagramUser(username)
         return user.get_followers()

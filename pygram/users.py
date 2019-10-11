@@ -8,6 +8,7 @@ from typing import List
 
 from selenium.common.exceptions import WebDriverException
 
+from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .graphql import get_graphql_query_hash
 
@@ -21,14 +22,14 @@ class InstagramUserOperationError(Exception):
     """
 
 
-def user_followers(user_id: int, browser) -> List[str]:
+def user_followers(user_id: int) -> List[str]:
     """
     Generator that fetches a user's followers.
 
     A page (represented as a list) of followers is yielded on ever iteration.
     The generator will fetch subsequent pages if there are any.
     """
-    query_hash = get_graphql_query_hash(browser)
+    query_hash = get_graphql_query_hash()
     graphql_query_url = (
         f'view-source:https://www.instagram.com/graphql/query/?query_hash={query_hash}'
     )
@@ -37,9 +38,9 @@ def user_followers(user_id: int, browser) -> List[str]:
 
     def _get_user_followers_data(params) -> (List[str]):
         url = f'{graphql_query_url}&variables={json.dumps(params)}'
-        browser.get(url)
+        get_browser().get(url)
 
-        pre_element = browser.find_element_by_tag_name('pre')
+        pre_element = get_browser().find_element_by_tag_name('pre')
         data = json.loads(pre_element.text)
 
         followers_data = data['data']['user']['edge_followed_by']
@@ -65,18 +66,16 @@ def user_followers(user_id: int, browser) -> List[str]:
 
 
 class InstagramUser:
-    def __init__(self, username: str, browser):
+    def __init__(self, username: str):
         self.username = username.strip().lower()
         self.user_profile_link = f'{INSTAGRAM_HOMEPAGE_URL}/{self.username}/'
-
-        self._browser = browser
 
     @lru_cache(maxsize=128)
     def get_followers_count(self) -> int:
         """Returns the number of followers of this user."""
 
         try:
-            followers_count = self.browser.execute_script(
+            followers_count = get_browser().execute_script(
                 'return window._sharedData.entry_data.'
                 'ProfilePage[0].graphql.user.edge_followed_by.count'
             )
@@ -94,7 +93,7 @@ class InstagramUser:
         followers = []
         user_id = self._get_user_id()
 
-        for page in user_followers(user_id, self._browser):
+        for page in user_followers(user_id):
             for follower in page:
                 followers.append(follower['node']['username'])
 
@@ -108,7 +107,7 @@ class InstagramUser:
         """Returns the number of followings of this user."""
 
         try:
-            following_count = self._browser.execute_script(
+            following_count = get_browser().execute_script(
                 'return window._sharedData.entry_data.'
                 'ProfilePage[0].graphql.user.edge_follow.count'
             )
@@ -119,14 +118,14 @@ class InstagramUser:
 
     @lru_cache(maxsize=128)
     def _get_user_id(self) -> int:
-        self._browser.get(self.user_profile_link)
+        get_browser().get(self.user_profile_link)
 
         try:
-            user_id = self._browser.execute_script(
+            user_id = get_browser().execute_script(
                 'return window.__additionalData[Object.keys(window.__additionalData)[0]].data.graphql.user.id'
             )
         except WebDriverException:
-            user_id = self._browser.execute_script(
+            user_id = get_browser().execute_script(
                 'return window._sharedData.' 'entry_data.ProfilePage[0].' 'graphql.user.id'
             )
 
