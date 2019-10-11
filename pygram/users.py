@@ -4,7 +4,7 @@ import json
 import random
 import time
 from functools import lru_cache
-from typing import List
+from typing import List, Iterator
 
 from selenium.common.exceptions import WebDriverException
 
@@ -22,13 +22,14 @@ class InstagramUserOperationError(Exception):
     """
 
 
-def user_followers(user_id: int) -> List[str]:
+def user_followers(user_id: int, randomize: bool = False) -> Iterator[List[str]]:
     """
     Generator that fetches a user's followers.
 
     A page (represented as a list) of followers is yielded on ever iteration.
     The generator will fetch subsequent pages if there are any.
     """
+
     query_hash = get_graphql_query_hash()
     graphql_query_url = (
         f'view-source:https://www.instagram.com/graphql/query/?query_hash={query_hash}'
@@ -44,7 +45,6 @@ def user_followers(user_id: int) -> List[str]:
         data = json.loads(pre_element.text)
 
         followers_data = data['data']['user']['edge_followed_by']
-
         return followers_data
 
     params = {'id': user_id, 'include_reel': 'true', 'fetch_mutual': 'true', 'first': 50}
@@ -54,7 +54,12 @@ def user_followers(user_id: int) -> List[str]:
 
         followers_data = _get_user_followers_data(params)
         followers_page = followers_data['edges']
-        yield followers_page
+        followers_list = [follower['node']['username'] for follower in followers_page]
+
+        if randomize:
+            random.shuffle(followers_list)
+
+        yield followers_list
 
         has_next_page = followers_data['page_info']['has_next_page']
 
@@ -70,6 +75,31 @@ class InstagramUser:
         self.username = username.strip().lower()
         self.user_profile_link = f'{INSTAGRAM_HOMEPAGE_URL}/{self.username}/'
 
+    def __str__(self):
+        return self.username
+
+    @property
+    def is_private(self):
+        """Check if this user has a private profile."""
+
+        is_private = None
+        try:
+            is_private = get_browser().execute_script(
+                'return window.__additionalData[Object.keys(window.__additionalData)[0]].'
+                'data.graphql.user.is_private'
+            )
+        except WebDriverException:
+            try:
+                get_browser().execute_script('location.reload()')
+
+                is_private = get_browser().execute_script(
+                    'return window._sharedData.entry_data.' 'ProfilePage[0].graphql.user.is_private'
+                )
+            except WebDriverException:
+                pass
+
+        return is_private
+
     @lru_cache(maxsize=128)
     def get_followers_count(self) -> int:
         """Returns the number of followers of this user."""
@@ -84,23 +114,18 @@ class InstagramUser:
 
         return int(followers_count)
 
-    def get_followers(self, randomize=False) -> List[str]:
+    def get_followers(self, randomize: bool = False) -> Iterator[str]:
         """
         Get list of followers.
 
+        Individual usernames are yielded per iteration of this method.
+
         :param randomize: If list of followers should be returned in random order.
         """
-        followers = []
         user_id = self._get_user_id()
 
-        for page in user_followers(user_id):
-            for follower in page:
-                followers.append(follower['node']['username'])
-
-        if randomize:
-            random.shuffle(followers)
-
-        return followers
+        for page in user_followers(user_id, randomize):
+            yield from page
 
     @lru_cache(maxsize=128)
     def get_followings_count(self) -> int:
@@ -130,3 +155,9 @@ class InstagramUser:
             )
 
         return str(user_id)
+
+    def follow(self):
+        """Follows this user."""
+
+        get_browser().get(self.user_profile_link)
+        time.sleep(10)
