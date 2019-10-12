@@ -1,4 +1,4 @@
-from selenium import webdriver
+from selenium.webdriver.firefox.webdriver import WebDriver
 from selenium.webdriver.firefox.webdriver import FirefoxProfile
 
 
@@ -12,18 +12,17 @@ _CURRENT_BROWSER = None
 def get_browser():
     global _CURRENT_BROWSER
     if _CURRENT_BROWSER is None:
-        _CURRENT_BROWSER = PygramBrowserFactory.firefox_browser()
+        _CURRENT_BROWSER = PygramFirefoxBrowser()
 
     return _CURRENT_BROWSER
 
 
-class PygramBrowserFactory:
-    @staticmethod
-    def firefox_browser():
-        """
-        Creates a Selenium FireFox web driver with special settings.
-        """
+class PygramFirefoxBrowser(WebDriver):
+    """
+    Selenium FireFox web driver with special settings.
+    """
 
+    def __init__(self, *args, **kwargs):
         firefox_profile = FirefoxProfile()
 
         # Set English language
@@ -33,9 +32,16 @@ class PygramBrowserFactory:
         # mute audio while watching stories
         firefox_profile.set_preference('media.volume_scale', '0.0')
 
-        browser = webdriver.Firefox(firefox_profile=firefox_profile)
+        super().__init__(firefox_profile=firefox_profile, *args, **kwargs)
 
         # Set mobile viewport (iPhone X)
-        browser.set_window_size(375, 812)
+        self.set_window_size(375, 812)
 
-        return browser
+    def navigate(self, url: str):
+        """Navigates to a URL if the current page is not on that URL."""
+
+        assert 'instagram.com' in url
+
+        # NOTE: `url` must include the www subdomain
+        if url not in self.current_url:
+            self.get(url)
