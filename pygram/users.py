@@ -14,6 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
 from .graphql import get_graphql_query_hash
+from .xpath import FOLLOW_BUTTON_XPATH
 
 
 logger = logging.getLogger(__name__)
@@ -97,17 +98,7 @@ class InstagramUser:
 
         try:
             follow_button_elem = WebDriverWait(get_browser(), 10).until(
-                EC.presence_of_element_located(
-                    (
-                        By.XPATH,
-                        "//button[text()='Following' or \
-                    text()='Requested' or \
-                    text()='Follow' or \
-                    text()='Follow Back' or \
-                    text()='Unblock' or \
-                    text()='Message']",
-                    )
-                )
+                EC.presence_of_element_located((By.XPATH, FOLLOW_BUTTON_XPATH))
             )
         except TimeoutException:
             raise
@@ -200,15 +191,7 @@ class InstagramUser:
         get_browser().navigate(self.user_profile_link)
         time.sleep(5)
 
-        # TODO: This is same path as following status. DRY it up
-        follow_button_xp = get_browser().find_element_by_xpath(
-            "//button[text()='Following' or \
-            text()='Requested' or \
-            text()='Follow' or \
-            text()='Follow Back' or \
-            text()='Unblock' or \
-            text()='Message']"
-        )
+        follow_button_xp = get_browser().find_element_by_xpath(FOLLOW_BUTTON_XPATH)
 
         try:
             follow_button_xp.click()
