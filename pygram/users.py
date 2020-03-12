@@ -6,10 +6,13 @@ import time
 from functools import lru_cache
 from typing import List, Iterator
 
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from .browser import get_browser
-from .constants import INSTAGRAM_HOMEPAGE_URL
+from .constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
 from .graphql import get_graphql_query_hash
 
 
@@ -78,6 +81,41 @@ class InstagramUser:
     def __str__(self):
         return self.username
 
+    def get_following_status(self, current_username: str) -> FollowingStatus:
+        """
+        Return the following status for this user.
+
+        :param current_username: Username of the current session's user.
+
+        :returns: A FollowingStatus enum value representing the following status.
+        """
+
+        if self.username == current_username:
+            raise InstagramUserOperationError("Can't get following status of same user")
+
+        get_browser().navigate(self.user_profile_link)
+
+        try:
+            follow_button_elem = WebDriverWait(get_browser(), 10).until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        "//button[text()='Following' or \
+                    text()='Requested' or \
+                    text()='Follow' or \
+                    text()='Follow Back' or \
+                    text()='Unblock' or \
+                    text()='Message']",
+                    )
+                )
+            )
+        except TimeoutException:
+            raise
+
+        following_status = follow_button_elem.text
+
+        return FollowingStatus.get_following_status_from_string(following_status)
+
     @property
     def is_private(self):
         """Check if this user has a private profile."""
@@ -143,7 +181,7 @@ class InstagramUser:
 
     @lru_cache(maxsize=128)
     def _get_user_id(self) -> int:
-        get_browser().get(self.user_profile_link)
+        get_browser().navigate(self.user_profile_link)
 
         try:
             user_id = get_browser().execute_script(
@@ -157,7 +195,22 @@ class InstagramUser:
         return str(user_id)
 
     def follow(self):
-        """Follows this user."""
+        """Follows this user from their profile page."""
 
-        get_browser().get(self.user_profile_link)
-        time.sleep(10)
+        get_browser().navigate(self.user_profile_link)
+        time.sleep(5)
+
+        # TODO: This is same path as following status. DRY it up
+        follow_button_xp = get_browser().find_element_by_xpath(
+            "//button[text()='Following' or \
+            text()='Requested' or \
+            text()='Follow' or \
+            text()='Follow Back' or \
+            text()='Unblock' or \
+            text()='Message']"
+        )
+
+        try:
+            follow_button_xp.click()
+        except:
+            logger.error(f'Error trying to follow user {self}')
