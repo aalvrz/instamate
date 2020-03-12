@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from .browser import get_browser
 from .exceptions import PygramException
-from .workspace import UserWorkspace
+from .workspace import UserWorkspace, CookiesFileNotFoundError
 
 
 class AuthenticationError(PygramException):
@@ -37,7 +37,11 @@ class Authenticator:
         self._cookie_loaded = False
 
     def login(self):
-        self._login_using_cookie()
+        try:
+            self._login_using_cookie()
+        except CookiesFileNotFoundError:
+            pass
+
         if self.is_user_logged_in():
             return
 
@@ -57,6 +61,8 @@ class Authenticator:
         time.sleep(1)
 
         self._press_login_button(password_input_element)
+
+        self._store_user_cookies()
 
     def _login_using_cookie(self):
         # We will first try to log the user in using a cookie. If the login is
@@ -157,16 +163,17 @@ class Authenticator:
         """
         Load a user cookies that already contain session data.
         """
+
         for cookie in self._user_workspace.get_cookies():
             get_browser().add_cookie(cookie)
-            self._cookie_loaded = True
+
+        self._cookie_loaded = True
 
     def _store_user_cookies(self):
         """
         Create session cookies for user and store it in the user's workspace.
         """
-        if self.is_logged_in:
-            self._user_workspace.store_cookies(get_browser().get_cookies())
+        self._user_workspace.store_cookies(get_browser().get_cookies())
 
     def is_user_logged_in(self) -> bool:
         # Check using activity counts
