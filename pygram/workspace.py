@@ -32,9 +32,7 @@ class UserWorkspace:
         self._username = username
 
         self.path = os.path.join(DEFAULT_WORKSPACES_PATH, self._username)
-        self._cookie_path = os.path.join(
-            self.path, f'{self._username}_cookie.pkl'
-        )
+        self._cookie_path = os.path.join(self.path, f'{self._username}_cookie.pkl')
 
     def create(self):
         """
@@ -48,11 +46,7 @@ class UserWorkspace:
         """
 
         try:
-            cookies = [
-                cookie
-                for cookie in
-                pickle.load(open(self._cookie_path, 'rb'))
-            ]
+            cookies = [cookie for cookie in pickle.load(open(self._cookie_path, 'rb'))]
         except FileNotFoundError:
             raise CookiesFileNotFoundError
 
@@ -60,10 +54,7 @@ class UserWorkspace:
 
     def store_cookies(self, cookies):
         """Store cookies in the user workspace."""
-        pickle.dump(
-            cookies,
-            open(self._cookie_path, 'wb')
-        )
+        pickle.dump(cookies, open(self._cookie_path, 'wb'))
 
     @property
     def exists(self):
