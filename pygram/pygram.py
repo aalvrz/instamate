@@ -22,6 +22,9 @@ from .workspace import UserWorkspace
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+FOLLOW_COUNT_SLEEP_THRESHOLD = 15
+
+
 database = get_database()
 
 
@@ -108,5 +111,8 @@ class Pygram:
 
             if self.follows_count == amount:
                 break
+
+            if self.follows_count % FOLLOW_COUNT_SLEEP_THRESHOLD == 0:
+                time.sleep(600)
 
         logger.info(f"Finished following {amount} of {username}'s followers")
