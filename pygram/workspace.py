@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from .exceptions import PygramException
 
@@ -34,6 +34,8 @@ class UserWorkspace:
         self.path = os.path.join(DEFAULT_WORKSPACES_PATH, self._username)
         self._cookie_path = os.path.join(self.path, f'{self._username}_cookie.pkl')
 
+        self._follow_history_path = os.path.join(self.path, 'follow_history.txt')
+
     def create(self):
         """
         Creates the workspace directory using the path provided.
@@ -55,6 +57,21 @@ class UserWorkspace:
     def store_cookies(self, cookies):
         """Store cookies in the user workspace."""
         pickle.dump(cookies, open(self._cookie_path, 'wb'))
+
+    def get_follow_history(self) -> Set[str]:
+        history = set()
+
+        try:
+            with open(self._follow_history_path) as f:
+                history = set(f.read().splitlines())
+        except FileNotFoundError:
+            pass
+
+        return history
+
+    def store_follow_history(self, follow_history: Set[str]):
+        with open(self._follow_history_path, 'w') as f:
+            f.write('\n'.join(follow_history))
 
     @property
     def exists(self):
