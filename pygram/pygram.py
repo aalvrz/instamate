@@ -14,12 +14,15 @@ import time
 from .auth import Authenticator, AuthenticationError
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
+from .db import get_database
 from .users import InstagramUser
 from .workspace import UserWorkspace
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+database = get_database()
 
 
 class Pygram:
@@ -35,6 +38,8 @@ class Pygram:
         self.workspace = UserWorkspace(self.username)
         self._create_user_workspace()
 
+        database.create_profile(self.username)
+
         get_browser().implicitly_wait(5)
 
         self._login()
@@ -43,6 +48,7 @@ class Pygram:
 
     def __exit__(self, type, value, traceback):
         get_browser().quit()
+        database.close()
 
     def _create_user_workspace(self):
         if not self.workspace.exists:
@@ -83,6 +89,8 @@ class Pygram:
 
             if following_status == FollowingStatus.NOT_FOLLOWING:
                 ig_follower.follow()
+                # database.update_user_following_status(follower_username, str(following_status))
+
                 logger.info(f'Followed user {follower_username}')
 
                 time.sleep(60)
