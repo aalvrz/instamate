@@ -81,7 +81,7 @@ class Pygram:
         user = InstagramUser(username)
         return user.get_followers()
 
-    def follow_user_followers(self, username: str):
+    def follow_user_followers(self, username: str, amount: int = 100):
         """
         Obtains the list of followers of a specific user and follows them.
         """
@@ -106,4 +106,7 @@ class Pygram:
                     f'Skipping user {follower_username} because follow status is {following_status}'
                 )
 
-        logger.info(f"Finished following {username}'s followers")
+            if self.follows_count == amount:
+                break
+
+        logger.info(f"Finished following {amount} of {username}'s followers")
