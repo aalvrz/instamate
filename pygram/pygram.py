@@ -11,7 +11,7 @@ import logging
 import sys
 import time
 
-from .auth import Authenticator, AuthenticationError
+from .auth import Authenticator
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
 from .db import get_database
@@ -52,7 +52,8 @@ class Pygram:
         get_browser().quit()
         database.close()
 
-        self._record_session_activity()
+        if not value:
+            self._record_session_activity()
 
     def _create_user_workspace(self):
         if not self.workspace.exists:
@@ -66,19 +67,12 @@ class Pygram:
         get_browser().navigate(INSTAGRAM_HOMEPAGE_URL)
 
         authenticator = Authenticator(self.username, self.password)
-        try:
-            authenticator.login()
-        except AuthenticationError as ex:
-            logger.error(f'Error while trying to log in: {ex}')
-            return
+        authenticator.login()
 
         logger.info('Logged in successfully.')
 
     def _record_session_activity(self):
-        database.record_activity(
-            username=self.username,
-            follows_count=self.follows_count,
-        )
+        database.record_activity(username=self.username, follows_count=self.follows_count)
 
     def get_user_followers(self, username: str) -> int:
         user = InstagramUser(username)

@@ -57,10 +57,13 @@ class Authenticator:
 
         password_input_element = self._fetch_password_input_element()
         self._enter_password(password_input_element)
-
         time.sleep(1)
 
         self._press_login_button(password_input_element)
+        time.sleep(5)
+
+        if not self.is_user_logged_in():
+            raise AuthenticationError
 
         self._store_user_cookies()
 
