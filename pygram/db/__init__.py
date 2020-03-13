@@ -2,12 +2,12 @@ import os
 
 from peewee import SqliteDatabase
 
-from .models import Profile
+from .models import Activity, Profile
 from ..workspace import DEFAULT_WORKSPACES_PATH
 
 
 DATABASE_PATH = os.path.join(DEFAULT_WORKSPACES_PATH, 'pygram.db')
-MODELS = (Profile,)
+MODELS = (Profile, Activity)
 
 _DATABASE = None
 
@@ -39,6 +39,30 @@ class PygramDatabase:
         """Register a profile record for the current session if it doesn't exist."""
 
         Profile.get_or_create(username=username)
+
+    def record_activity(
+        self,
+        username: str,
+        likes_count: int = 0,
+        comments_count: int = 0,
+        follows_count: int = 0,
+        unfollows_count: int = 0,
+    ):
+        """
+        Records activity data of a session.
+
+        :param username: Username of the user running the session.
+        """
+
+        profile = Profile.get(Profile.username == username)
+
+        Activity.create(
+            profile=profile,
+            likes=likes_count,
+            comments=comments_count,
+            follows=follows_count,
+            unfollows=unfollows_count,
+        )
 
     def close(self):
         self.db.close()

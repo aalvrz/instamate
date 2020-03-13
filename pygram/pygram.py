@@ -34,6 +34,8 @@ class Pygram:
         self.username = username
         self.password = password
 
+        self.follows_count = 0
+
     def __enter__(self):
         self.workspace = UserWorkspace(self.username)
         self._create_user_workspace()
@@ -49,6 +51,8 @@ class Pygram:
     def __exit__(self, type, value, traceback):
         get_browser().quit()
         database.close()
+
+        self._record_session_activity()
 
     def _create_user_workspace(self):
         if not self.workspace.exists:
@@ -70,6 +74,12 @@ class Pygram:
 
         logger.info('Logged in successfully.')
 
+    def _record_session_activity(self):
+        database.record_activity(
+            username=self.username,
+            follows_count=self.follows_count,
+        )
+
     def get_user_followers(self, username: str) -> int:
         user = InstagramUser(username)
         return user.get_followers()
@@ -89,8 +99,7 @@ class Pygram:
 
             if following_status == FollowingStatus.NOT_FOLLOWING:
                 ig_follower.follow()
-                # database.update_user_following_status(follower_username, str(following_status))
-
+                self.follows_count += 1
                 logger.info(f'Followed user {follower_username}')
 
                 time.sleep(60)
