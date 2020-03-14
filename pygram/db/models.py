@@ -25,3 +25,19 @@ class Activity(Model):
 
     # Recorded when the session ends
     created_at = DateTimeField(default=datetime.datetime.now)
+
+
+class AccountProgress(Model):
+    """Records the progress over time of a Pygram user."""
+
+    class Meta:
+        table_name = 'accounts_progress'
+
+    profile = ForeignKeyField(Profile, backref='account_progress')
+
+    followers = IntegerField()
+    following = IntegerField()
+    total_posts = IntegerField()
+
+    # Recorded at the start of the session
+    created_at = DateTimeField(default=datetime.datetime.now)
