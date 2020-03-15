@@ -174,6 +174,27 @@ class InstagramUser:
 
         return int(following_count)
 
+    def get_total_posts_count(self) -> int:
+        """Navigates to the user's profile and returns the number of posts of this user."""
+
+        data = None
+        query = 'graphql.user.edge_owner_to_timeline_media.count'
+
+        get_browser().navigate(self.user_profile_link)
+
+        try:
+            base_query = (
+                'return window.__additionalData[Object.keys(window.__additionalData)[0]].data.'
+            )
+            data = get_browser().execute_script(base_query + query)
+        except WebDriverException:
+            get_browser().execute_script('location.reload()')
+
+            base_query = 'return window._sharedData.entry_data.ProfilePage[0].'
+            data = get_browser().execute_script(base_query + query)
+
+        return data
+
     @lru_cache(maxsize=128)
     def _get_user_id(self) -> int:
         get_browser().navigate(self.user_profile_link)
