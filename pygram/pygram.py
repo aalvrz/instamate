@@ -13,17 +13,21 @@ import time
 
 from .auth import Authenticator
 from .browser import get_browser
-from .constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
+from .constants import (
+    FOLLOW_BREAK_WAIT_TIME,
+    FOLLOW_COUNT_PAUSE_THRESHOLD,
+    FOLLOW_USER_WAIT_TIME,
+    INSTAGRAM_HOMEPAGE_URL,
+    FollowingStatus,
+)
 from .db import get_database
+from .utils import get_follow_users_duration
 from .users import InstagramUser
 from .workspace import UserWorkspace
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-FOLLOW_COUNT_SLEEP_THRESHOLD = 15
-
 
 database = get_database()
 
@@ -106,6 +110,9 @@ class Pygram:
         Obtains the list of followers of a specific user and follows them.
         """
 
+        time_estimate = get_follow_users_duration(amount)
+        logger.info(f'Starting to follow {amount} users. This will take aprox. {time_estimate}')
+
         logger.info(f"Obtaining {username}'s followers.")
         user = InstagramUser(username)
         user_followers = user.get_followers(randomize=True)
@@ -120,7 +127,7 @@ class Pygram:
                 self.follow_history.add(follower_username)
                 logger.info(f'Followed user {follower_username}')
 
-                time.sleep(60)
+                time.sleep(FOLLOW_USER_WAIT_TIME)
             else:
                 logger.info(
                     f'Skipping user {follower_username} because follow status is {following_status}'
@@ -129,7 +136,7 @@ class Pygram:
             if self.follows_count == amount:
                 break
 
-            if self.follows_count % FOLLOW_COUNT_SLEEP_THRESHOLD == 0:
-                time.sleep(600)
+            if self.follows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0:
+                time.sleep(FOLLOW_BREAK_WAIT_TIME)
 
         logger.info(f"Finished following {amount} of {username}'s followers")
