@@ -131,7 +131,9 @@ class InstagramUser:
 
     @lru_cache(maxsize=128)
     def get_followers_count(self) -> int:
-        """Returns the number of followers of this user."""
+        """Navigates to the user's profile and returns the number of followers of this user."""
+
+        get_browser().navigate(self.user_profile_link)
 
         try:
             followers_count = get_browser().execute_script(
@@ -158,7 +160,9 @@ class InstagramUser:
 
     @lru_cache(maxsize=128)
     def get_followings_count(self) -> int:
-        """Returns the number of followings of this user."""
+        """Navigates to the user's profile and returns the number of followings of this user."""
+
+        get_browser().navigate(self.user_profile_link)
 
         try:
             following_count = get_browser().execute_script(
