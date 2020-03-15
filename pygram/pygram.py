@@ -50,6 +50,8 @@ class Pygram:
 
         self._login()
 
+        self._record_account_progress()
+
         return self
 
     def __exit__(self, type, value, traceback):
@@ -74,6 +76,21 @@ class Pygram:
         authenticator.login()
 
         logger.info('Logged in successfully.')
+
+    def _record_account_progress(self):
+        logger.info('Saving account progress...')
+
+        user = InstagramUser(self.username)
+        following_count = user.get_followings_count()
+        followers_count = user.get_followers_count()
+        posts_count = user.get_total_posts_count()
+
+        database.record_account_progress(
+            username=self.username,
+            followers_count=followers_count,
+            following_count=following_count,
+            total_posts_count=posts_count,
+        )
 
     def _record_session_activity(self):
         database.record_activity(username=self.username, follows_count=self.follows_count)
