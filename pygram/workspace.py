@@ -32,15 +32,18 @@ class UserWorkspace:
         self._username = username
 
         self.path = os.path.join(DEFAULT_WORKSPACES_PATH, self._username)
-        self._cookie_path = os.path.join(self.path, f'{self._username}_cookie.pkl')
+        self._create()
 
+        self._cookie_path = os.path.join(self.path, f'{self._username}_cookie.pkl')
         self._follow_history_path = os.path.join(self.path, 'follow_history.txt')
 
-    def create(self):
+    def _create(self):
         """
         Creates the workspace directory using the path provided.
         """
-        os.makedirs(self.path)
+
+        if not self.exists:
+            os.makedirs(self.path)
 
     def get_cookies(self) -> List[Dict]:
         """
@@ -69,9 +72,13 @@ class UserWorkspace:
 
         return history
 
-    def store_follow_history(self, follow_history: Set[str]):
-        with open(self._follow_history_path, 'w') as f:
-            f.write('\n'.join(follow_history))
+    def add_user_to_follow_history(self, username: str):
+        """
+        Appends a new username to the follow history text file.
+        """
+
+        with open(self._follow_history_path, 'a+') as f:
+            f.write(username + '\n')
 
     @property
     def exists(self):
