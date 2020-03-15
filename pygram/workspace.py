@@ -78,7 +78,13 @@ class UserWorkspace:
         """
 
         with open(self._follow_history_path, 'a+') as f:
-            f.write(username + '\n')
+            f.seek(0)
+
+            data = f.read(100)
+            if len(data) > 0:
+                f.write('\n')
+
+            f.write(username)
 
     @property
     def exists(self):

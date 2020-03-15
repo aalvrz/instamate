@@ -20,7 +20,9 @@ class TestWorkspace:
         workspace.add_user_to_follow_history(u1)
         workspace.add_user_to_follow_history(u2)
         workspace.add_user_to_follow_history(u3)
+        workspace.add_user_to_follow_history('yukop')
 
         follow_history = workspace.get_follow_history()
 
+        assert len(follow_history) == 4
         assert {u1, u2, u3} <= follow_history
