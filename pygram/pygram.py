@@ -131,7 +131,7 @@ class Pygram:
             if self.follows_count == amount:
                 break
 
-            if self.follows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0:
+            if self.follows_count > 0 and self.follows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0:
                 time.sleep(FOLLOW_BREAK_WAIT_TIME)
 
         logger.info(f"Finished following {amount} of {username}'s followers")
