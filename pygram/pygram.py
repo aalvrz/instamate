@@ -10,6 +10,7 @@ Commands:
 import logging
 import sys
 import time
+from typing import Dict
 
 from .auth import Authenticator
 from .browser import get_browser
@@ -21,6 +22,7 @@ from .constants import (
     FollowingStatus,
 )
 from .db import get_database
+from .sms import SMSClient
 from .utils import get_follow_users_duration
 from .users import InstagramUser
 from .workspace import UserWorkspace
@@ -35,11 +37,24 @@ database = get_database()
 class Pygram:
     """
     Initializes a Pygram session.
+
+    To enable SMS notifications, provide a `sms_config` dictionary argument:
+
+    {
+        'sid': 'Aaksdlkasdk',
+        'token': 'Xdkgouasd9f912',
+        'from_number': '+19732644152',
+        'to_number': '+1230349349',
+    }
     """
 
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str, password: str, sms_config: Dict = None):
         self.username = username
         self.password = password
+        self._sms_client = None
+
+        if sms_config:
+            self._sms_client = SMSClient(**sms_config)
 
         self.workspace = UserWorkspace(self.username)
 
@@ -93,6 +108,9 @@ class Pygram:
 
     def _record_session_activity(self):
         database.record_activity(username=self.username, follows_count=self.follows_count)
+
+        if self._sms_client:
+            self._sms_client.send_session_report_sms(follows_count=self.follows_count)
 
     def get_user_followers(self, username: str) -> int:
         user = InstagramUser(username)
