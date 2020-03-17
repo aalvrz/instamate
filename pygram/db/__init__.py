@@ -92,6 +92,9 @@ class PygramDatabase:
             profile=profile, username=user_username, followed_at=followed_at
         )
 
+    def get_user_interactions(self, profile_username: str):
+        return UserInteraction.select().join(Profile).where(Profile.username == profile_username)
+
     def close(self):
         self.db.close()
 

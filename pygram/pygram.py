@@ -163,28 +163,37 @@ class Pygram:
 
         logger.info(f"Finished following {amount} of {username}'s followers")
 
-    def unfollow_users(self):
+    def unfollow_users(self, days_passed: int = None):
         """
         Unfollow users that this account is following.
 
         For now only unfollow users that have been followed through Pygram, and that DON'T
         follow back this account.
+
+        A `days_passed` parameter can be included. This will indicate to only unfollow users
+        that were followed `n` days ago,
         """
 
         logger.info('Starting to unfollow users...')
 
-        follow_history = self.workspace.get_follow_history()
-        user = InstagramUser(self.username)
+        interactions = database.get_user_interactions(profile_username=self.username)
+        if len(interactions) == 0:
+            logger.info('No Pygram followed users to unfollow. Quitting.')
+            return
 
-        # We need to fetch all users we are following because it is also possible that we have
-        # unfollowed users manually through Instagram and that these users are in our follow
-        # history, so we need to rule them out.
-        # users_i_follow = set(user.get_followings())
-        # follow_history = follow_history & users_i_follow
+        pygram_user = InstagramUser(self.username)
+        followers = set(pygram_user.get_followers())
 
-        followers = set(user.get_followers())
+        # Only keep users that don't follow back
+        interactions = filter(lambda i: i.username not in followers, interactions)
 
-        users_to_unfollow = {user for user in follow_history if user not in followers}
+        if days_passed:
+            now = datetime.now()
+            users_to_unfollow = filter(
+                lambda i: (now - i.followed_at).days > days_passed, interactions
+            )
+
+        users_to_unfollow = {i.username for i in interactions}
 
         for user in users_to_unfollow:
             ig_user = InstagramUser(user)

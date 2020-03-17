@@ -1,10 +1,14 @@
 import datetime
 
 import pytest
+from faker import Faker
 from peewee import IntegrityError
 
 from pygram.db import PygramDatabase
 from pygram.db.models import AccountProgress, Activity, Profile, UserInteraction
+
+
+fake = Faker()
 
 
 @pytest.fixture
@@ -78,3 +82,16 @@ class TestPygramDatabase:
                 user_username=user_username,
                 followed_at=followed_at,
             )
+
+    def test_get_user_interactions(self, database, profile):
+        usernames = ['supab1tch', 'distroboss12']
+        for username in usernames:
+            database.record_user_interaction(
+                profile_username=profile.username,
+                user_username=username,
+                followed_at=datetime.datetime.now(),
+            )
+
+        interactions = database.get_user_interactions(profile_username=profile.username)
+
+        assert usernames == [i.username for i in interactions]

@@ -49,10 +49,8 @@ class UserInteraction(Model):
     """
 
     class Meta:
-        database_name = 'user_interactions'
-        indexes = (
-            (('profile_id', 'username'), True),
-        )
+        table_name = 'user_interactions'
+        indexes = ((('profile_id', 'username'), True),)
 
     profile = ForeignKeyField(Profile, backref='user_interactions')
 
