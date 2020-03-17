@@ -154,6 +154,7 @@ class Pygram:
                 logger.info(
                     f'Skipping user {follower_username} because follow status is {following_status}'
                 )
+                time.sleep(3)
 
             if self.follows_count == amount:
                 break
