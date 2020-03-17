@@ -1,13 +1,14 @@
+import datetime
 import os
 
 from peewee import SqliteDatabase
 
-from .models import AccountProgress, Activity, Profile
+from .models import AccountProgress, Activity, Profile, UserInteraction
 from ..workspace import DEFAULT_WORKSPACES_PATH
 
 
 DATABASE_PATH = os.path.join(DEFAULT_WORKSPACES_PATH, 'pygram.db')
-MODELS = (Profile, Activity, AccountProgress)
+MODELS = (Profile, Activity, AccountProgress, UserInteraction)
 
 _DATABASE = None
 
@@ -76,6 +77,19 @@ class PygramDatabase:
             followers=followers_count,
             following=following_count,
             total_posts=total_posts_count,
+        )
+
+    def record_user_interaction(
+        self, profile_username: str, user_username: str, followed_at: datetime.datetime
+    ):
+        """
+        Records an interaction (such as following) with an Instagram user
+        """
+
+        profile = Profile.get(Profile.username == profile_username)
+
+        UserInteraction.get_or_create(
+            profile=profile, username=user_username, followed_at=followed_at
         )
 
     def close(self):

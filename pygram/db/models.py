@@ -41,3 +41,20 @@ class AccountProgress(Model):
 
     # Recorded at the start of the session
     created_at = DateTimeField(default=datetime.datetime.now)
+
+
+class UserInteraction(Model):
+    """
+    Stores information about interactions with Instagram users.
+    """
+
+    class Meta:
+        database_name = 'user_interactions'
+        indexes = (
+            (('profile_id', 'username'), True),
+        )
+
+    profile = ForeignKeyField(Profile, backref='user_interactions')
+
+    username = CharField()
+    followed_at = DateTimeField()

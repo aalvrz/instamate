@@ -1,7 +1,10 @@
+import datetime
+
 import pytest
+from peewee import IntegrityError
 
 from pygram.db import PygramDatabase
-from pygram.db.models import AccountProgress, Activity, Profile
+from pygram.db.models import AccountProgress, Activity, Profile, UserInteraction
 
 
 @pytest.fixture
@@ -50,3 +53,28 @@ class TestPygramDatabase:
         assert progress_qs[0].followers == 45
         assert progress_qs[0].following == 100
         assert progress_qs[0].total_posts == 50
+
+    def test_record_user_interaction(self, database, profile):
+        assert UserInteraction.select().count() == 0
+
+        user_username = 'jizz332'
+        followed_at = datetime.datetime.now()
+
+        database.record_user_interaction(
+            profile_username=profile.username, user_username=user_username, followed_at=followed_at
+        )
+
+        interaction_qs = UserInteraction.select().where(
+            UserInteraction.profile == profile, UserInteraction.username == user_username
+        )
+
+        assert len(interaction_qs) == 1
+        assert interaction_qs[0].followed_at == followed_at
+
+        # Test unique together constraint
+        with pytest.raises(IntegrityError):
+            UserInteraction.create(
+                profile_username=profile.username,
+                user_username=user_username,
+                followed_at=followed_at,
+            )

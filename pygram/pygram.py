@@ -7,6 +7,7 @@ Commands:
     - `follow_user_followers: Obtains the list of followers of a specific user
                               and follows them.
 """
+import datetime
 import logging
 import sys
 import time
@@ -140,7 +141,11 @@ class Pygram:
                 ig_follower.follow()
 
                 self.follows_count += 1
-                self.workspace.add_user_to_follow_history(follower_username)
+                database.record_user_interaction(
+                    profile_username=self.username,
+                    user_username=follower_username,
+                    followed_at=datetime.datetime.now(),
+                )
 
                 logger.info(f'Followed user {follower_username}')
 
