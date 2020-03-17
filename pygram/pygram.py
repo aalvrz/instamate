@@ -24,7 +24,7 @@ from .constants import (
 from .db import get_database
 from .sms import SMSClient
 from .utils import get_follow_users_duration
-from .users import InstagramUser
+from .users import InstagramUser, UnfollowUserError
 from .workspace import UserWorkspace
 
 
@@ -61,7 +61,7 @@ class Pygram:
         database.create_profile(self.username)
 
         self.follows_count = 0
-        self.follow_history = self.workspace.get_follow_history()
+        self.unfollows_count = 0
 
     def __enter__(self):
         get_browser().implicitly_wait(5)
@@ -107,7 +107,11 @@ class Pygram:
         )
 
     def _record_session_activity(self):
-        database.record_activity(username=self.username, follows_count=self.follows_count)
+        database.record_activity(
+            username=self.username,
+            follows_count=self.follows_count,
+            unfollows_count=self.unfollows_count,
+        )
 
         if self._sms_client:
             self._sms_client.send_session_report_sms(follows_count=self.follows_count)
@@ -153,3 +157,41 @@ class Pygram:
                 time.sleep(FOLLOW_BREAK_WAIT_TIME)
 
         logger.info(f"Finished following {amount} of {username}'s followers")
+
+    def unfollow_users(self):
+        """
+        Unfollow users that this account is following.
+
+        For now only unfollow users that have been followed through Pygram, and that DON'T
+        follow back this account.
+        """
+
+        logger.info('Starting to unfollow users...')
+
+        follow_history = self.workspace.get_follow_history()
+        user = InstagramUser(self.username)
+
+        # We need to fetch all users we are following because it is also possible that we have
+        # unfollowed users manually through Instagram and that these users are in our follow
+        # history, so we need to rule them out.
+        # users_i_follow = set(user.get_followings())
+        # follow_history = follow_history & users_i_follow
+
+        followers = set(user.get_followers())
+
+        users_to_unfollow = {user for user in follow_history if user not in followers}
+
+        for user in users_to_unfollow:
+            ig_user = InstagramUser(user)
+
+            try:
+                ig_user.unfollow()
+            except UnfollowUserError as ex:
+                logger.warning(f'Error trying to unfollow user {self}: {ex}. Skipping user.')
+                break
+
+            self.unfollows_count += 1
+
+            logger.info(f'Unfollowed user {user}')
+
+            time.sleep(FOLLOW_USER_WAIT_TIME)

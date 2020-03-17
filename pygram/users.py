@@ -6,7 +6,7 @@ import time
 from functools import lru_cache
 from typing import List, Iterator
 
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -24,6 +24,10 @@ class InstagramUserOperationError(Exception):
     """
     Raised when an error occurs when doing an operation on a Instagram user.
     """
+
+
+class UnfollowUserError(InstagramUserOperationError):
+    """Error when trying to unfollow Instagram user."""
 
 
 def user_followers(user_id: int, randomize: bool = False) -> Iterator[List[str]]:
@@ -268,3 +272,29 @@ class InstagramUser:
             follow_button_xp.click()
         except:
             logger.error(f'Error trying to follow user {self}')
+
+    def unfollow(self):
+        """
+        Navigate to this user's profile and unfollow.
+
+        :raises UnfollowUserError: If user can't be unfollowed.
+        """
+
+        get_browser().navigate(self.user_profile_link)
+        time.sleep(5)
+
+        try:
+            button = get_browser().find_element_by_xpath("//button[text() = 'Following']")
+        except NoSuchElementException:
+            try:
+                button = get_browser().find_element_by_xpath(
+                    "//button/div/span[contains(@aria-label, 'Following')]"
+                )
+            except NoSuchElementException:
+                raise UnfollowUserError('Cannot locate unfollow button')
+
+        button.click()
+
+        # Confirm unfollow
+        unfollow_button = get_browser().find_element_by_xpath("//button[text()='Unfollow']")
+        unfollow_button.click()
