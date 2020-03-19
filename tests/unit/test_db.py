@@ -84,14 +84,30 @@ class TestPygramDatabase:
             )
 
     def test_get_user_interactions(self, database, profile):
+        now = datetime.datetime.now()
+
         usernames = ['supab1tch', 'distroboss12']
         for username in usernames:
             database.record_user_interaction(
-                profile_username=profile.username,
-                user_username=username,
-                followed_at=datetime.datetime.now(),
+                profile_username=profile.username, user_username=username, followed_at=now
             )
 
         interactions = database.get_user_interactions(profile_username=profile.username)
-
         assert usernames == [i.username for i in interactions]
+
+        # Test filtering by time
+        five_days_ago = now - datetime.timedelta(days=5)
+        seven_days_ago = now - datetime.timedelta(days=7)
+
+        database.record_user_interaction(
+            profile_username=profile.username, user_username='beatzkilla', followed_at=five_days_ago
+        )
+        database.record_user_interaction(
+            profile_username=profile.username, user_username='nesly12', followed_at=seven_days_ago
+        )
+
+        interactions = database.get_user_interactions(
+            profile_username=profile.username, until_datetime=five_days_ago
+        )
+
+        assert ['beatzkilla', 'nesly12'] == [i.username for i in interactions]

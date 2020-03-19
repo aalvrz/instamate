@@ -164,20 +164,23 @@ class Pygram:
 
         logger.info(f"Finished following {amount} of {username}'s followers")
 
-    def unfollow_users(self, days_passed: int = None):
+    def unfollow_users(self, until_datetime: datetime.datetime = None):
         """
         Unfollow users that this account is following.
 
         For now only unfollow users that have been followed through Pygram, and that DON'T
         follow back this account.
 
-        A `days_passed` parameter can be included. This will indicate to only unfollow users
-        that were followed `n` days ago,
+        :param until_datetime: Only unfollow users that were followed at this datetime and
+                               before. Users followed after this time will not be unfollowed.
         """
 
         logger.info('Starting to unfollow users...')
 
-        interactions = database.get_user_interactions(profile_username=self.username)
+        interactions = database.get_user_interactions(
+            profile_username=self.username, until_datetime=until_datetime
+        )
+
         if len(interactions) == 0:
             logger.info('No Pygram followed users to unfollow. Quitting.')
             return
@@ -187,12 +190,6 @@ class Pygram:
 
         # Only keep users that don't follow back
         interactions = filter(lambda i: i.username not in followers, interactions)
-
-        if days_passed:
-            now = datetime.now()
-            users_to_unfollow = filter(
-                lambda i: (now - i.followed_at).days > days_passed, interactions
-            )
 
         users_to_unfollow = {i.username for i in interactions}
 

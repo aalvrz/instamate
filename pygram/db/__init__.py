@@ -92,8 +92,17 @@ class PygramDatabase:
             profile=profile, username=user_username, followed_at=followed_at
         )
 
-    def get_user_interactions(self, profile_username: str):
-        return UserInteraction.select().join(Profile).where(Profile.username == profile_username)
+    def get_user_interactions(
+        self, profile_username: str, until_datetime: datetime.datetime = None
+    ):
+        interactions = (
+            UserInteraction.select().join(Profile).where(Profile.username == profile_username)
+        )
+
+        if until_datetime:
+            interactions = interactions.where(UserInteraction.followed_at <= until_datetime)
+
+        return interactions
 
     def close(self):
         self.db.close()
