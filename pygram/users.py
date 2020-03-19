@@ -296,5 +296,7 @@ class InstagramUser:
         button.click()
 
         # Confirm unfollow
+        time.sleep(2)
+
         unfollow_button = get_browser().find_element_by_xpath("//button[text()='Unfollow']")
         unfollow_button.click()
