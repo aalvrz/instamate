@@ -133,7 +133,13 @@ class Pygram:
         user = InstagramUser(username)
         user_followers = user.get_followers(randomize=True)
 
+        follow_history = database.get_user_interactions(profile_username=self.username)
+        follow_history = {i.username for i in follow_history}
+
         for follower_username in user_followers:
+            if follower_username in follow_history:
+                continue
+
             ig_follower = InstagramUser(follower_username)
             following_status = ig_follower.get_following_status(self.username)
 

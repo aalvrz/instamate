@@ -1,10 +1,11 @@
 """Interactions with Instagram users."""
+import itertools
 import logging
 import json
 import random
 import time
 from functools import lru_cache
-from typing import List, Iterator
+from typing import List, Iterator, Set
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
@@ -30,52 +31,73 @@ class UnfollowUserError(InstagramUserOperationError):
     """Error when trying to unfollow Instagram user."""
 
 
-def user_followers(user_id: int, randomize: bool = False) -> Iterator[List[str]]:
+class UserFollowers:
     """
-    Generator that fetches a user's followers.
+    Iterable of a user's followers.
 
-    A page (represented as a list) of followers is yielded on ever iteration.
-    The generator will fetch subsequent pages if there are any.
+    Each request to Instagram for obtaining usernames returns around 50 users. Users are always
+    returned in the same order, so in order to obtain good randomization, all users need to be
+    fetched first. This can take a considerable amount of time.
+
+    Fetching of users is done immediately in initialization.
     """
 
-    query_hash = get_graphql_query_hash()
-    graphql_query_url = (
-        f'view-source:https://www.instagram.com/graphql/query/?query_hash={query_hash}'
-    )
+    def __init__(self, user_id: int, randomize: bool = True):
+        self._user_id = user_id
+        self._randomize = randomize
 
-    has_next_page = False
+        self._query_hash = get_graphql_query_hash()
+        self._graphql_query_url = (
+            f'view-source:https://www.instagram.com/graphql/query/?query_hash={self._query_hash}'
+        )
 
-    def _get_user_followers_data(params) -> (List[str]):
-        url = f'{graphql_query_url}&variables={json.dumps(params)}'
-        get_browser().get(url)
+        self._user_followers = self._get_user_followers()
 
-        pre_element = get_browser().find_element_by_tag_name('pre')
-        data = json.loads(pre_element.text)
+    def __iter__(self) -> str:
+        yield from self._user_followers
 
-        followers_data = data['data']['user']['edge_followed_by']
-        return followers_data
+    def _get_user_followers(self) -> Set[str]:
+        """Fetch the user's followers using Instagram GraphQL API."""
 
-    params = {'id': user_id, 'include_reel': 'true', 'fetch_mutual': 'true', 'first': 50}
-    while True:
-        if has_next_page:
-            time.sleep(random.randint(2, 6))
+        user_followers = []
 
-        followers_data = _get_user_followers_data(params)
-        followers_page = followers_data['edges']
-        followers_list = [follower['node']['username'] for follower in followers_page]
+        def _get_user_followers_data(params) -> (List[str]):
+            url = f'{self._graphql_query_url}&variables={json.dumps(params)}'
+            get_browser().get(url)
 
-        if randomize:
-            random.shuffle(followers_list)
+            pre_element = get_browser().find_element_by_tag_name('pre')
+            data = json.loads(pre_element.text)
 
-        yield followers_list
+            followers_data = data['data']['user']['edge_followed_by']
+            return followers_data
 
-        has_next_page = followers_data['page_info']['has_next_page']
+        params = {'id': self._user_id, 'include_reel': 'true', 'fetch_mutual': 'true', 'first': 50}
+        has_next_page = False
 
-        if not has_next_page:
-            break
+        while True:
+            if has_next_page:
+                time.sleep(random.randint(2, 6))
 
-        end_cursor = followers_data['page_info']['end_cursor']
-        params['after'] = end_cursor
+            followers_data = _get_user_followers_data(params)
+            followers_page = followers_data['edges']
+            followers_list = [follower['node']['username'] for follower in followers_page]
+
+            user_followers.append(followers_list)
+
+            has_next_page = followers_data['page_info']['has_next_page']
+
+            if not has_next_page:
+                break
+
+            end_cursor = followers_data['page_info']['end_cursor']
+            params['after'] = end_cursor
+
+        user_followers = list(itertools.chain.from_iterable(user_followers))
+
+        if self._randomize:
+            random.shuffle(user_followers)
+
+        return set(user_followers)
 
 
 def user_followings(user_id: int):
@@ -189,7 +211,7 @@ class InstagramUser:
 
         return int(followers_count)
 
-    def get_followers(self, randomize: bool = False) -> Iterator[str]:
+    def get_followers(self, randomize: bool = True) -> Iterator[str]:
         """
         Get list of followers.
 
@@ -198,9 +220,7 @@ class InstagramUser:
         :param randomize: If list of followers should be returned in random order.
         """
         user_id = self._get_user_id()
-
-        for page in user_followers(user_id, randomize):
-            yield from page
+        return UserFollowers(user_id, randomize)
 
     def get_followings(self) -> Iterator[str]:
         user_id = self._get_user_id()
