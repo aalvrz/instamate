@@ -209,9 +209,18 @@ class Pygram:
             except UnfollowUserError as ex:
                 logger.warning(f'Error trying to unfollow user {user}: {ex}. Skipping user.')
                 continue
+            else:
+                self.unfollows_count += 1
+                logger.info(f'Unfollowed user {user}')
 
-            self.unfollows_count += 1
+                time.sleep(FOLLOW_USER_WAIT_TIME)
 
-            logger.info(f'Unfollowed user {user}')
-
-            time.sleep(FOLLOW_USER_WAIT_TIME)
+            if (
+                self.unfollows_count > 0
+                and self.unfollows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0
+            ):
+                logger.info(
+                    f'Unfollowed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. '
+                    + f'Sleeping for {FOLLOW_BREAK_WAIT_TIME}'
+                )
+                time.sleep(FOLLOW_BREAK_WAIT_TIME)
