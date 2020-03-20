@@ -153,7 +153,9 @@ class Pygram:
                     followed_at=datetime.datetime.now(),
                 )
 
-                logger.info(f'Followed user {follower_username}')
+                logger.info(
+                    f'Followed user {follower_username} [{self.follows_count}/{len(user_followers)}]'
+                )
 
                 time.sleep(FOLLOW_USER_WAIT_TIME)
             else:
@@ -211,7 +213,9 @@ class Pygram:
                 continue
             else:
                 self.unfollows_count += 1
-                logger.info(f'Unfollowed user {user} [{self.unfollows_count}/{len(users_to_unfollow)}]')
+                logger.info(
+                    f'Unfollowed user {user} [{self.unfollows_count}/{len(users_to_unfollow)}]'
+                )
 
                 time.sleep(FOLLOW_USER_WAIT_TIME)
 
