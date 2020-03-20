@@ -211,7 +211,7 @@ class Pygram:
                 continue
             else:
                 self.unfollows_count += 1
-                logger.info(f'Unfollowed user {user}')
+                logger.info(f'Unfollowed user {user} [{self.unfollows_count}/{len(users_to_unfollow)}]')
 
                 time.sleep(FOLLOW_USER_WAIT_TIME)
 
