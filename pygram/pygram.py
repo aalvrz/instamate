@@ -167,8 +167,8 @@ class Pygram:
 
             if self.follows_count > 0 and self.follows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0:
                 logger.info(
-                    f'Followed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. ' +
-                    f'Sleeping for {FOLLOW_BREAK_WAIT_TIME}'
+                    f'Followed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. '
+                    + f'Sleeping for {FOLLOW_BREAK_WAIT_TIME}'
                 )
                 time.sleep(FOLLOW_BREAK_WAIT_TIME)
 
@@ -210,7 +210,7 @@ class Pygram:
                 ig_user.unfollow()
             except UnfollowUserError as ex:
                 logger.warning(f'Error trying to unfollow user {self}: {ex}. Skipping user.')
-                break
+                continue
 
             self.unfollows_count += 1
 
