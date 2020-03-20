@@ -207,7 +207,7 @@ class Pygram:
             try:
                 ig_user.unfollow()
             except UnfollowUserError as ex:
-                logger.warning(f'Error trying to unfollow user {self}: {ex}. Skipping user.')
+                logger.warning(f'Error trying to unfollow user {user}: {ex}. Skipping user.')
                 continue
 
             self.unfollows_count += 1
