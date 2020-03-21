@@ -56,6 +56,9 @@ class UserFollowers:
     def __iter__(self) -> str:
         yield from self._user_followers
 
+    def __len__(self):
+        return len(self._user_followers)
+
     def _get_user_followers(self) -> Set[str]:
         """Fetch the user's followers using Instagram GraphQL API."""
 
