@@ -153,9 +153,7 @@ class Pygram:
                     followed_at=datetime.datetime.now(),
                 )
 
-                logger.info(
-                    f'Followed user {follower_username} [{self.follows_count}/{len(user_followers)}]'
-                )
+                logger.info(f'Followed user {follower_username} [{self.follows_count}/{amount}]')
 
                 time.sleep(FOLLOW_USER_WAIT_TIME)
             else:
