@@ -3,7 +3,7 @@ import itertools
 import json
 import random
 import time
-from typing import List
+from typing import List, Set
 
 from ..browser import get_browser
 
@@ -29,8 +29,8 @@ class UserList(abc.ABC):
 
         self._users = self._get_users()
 
-    def _get_users(self):
-        user_followers = []
+    def _get_users(self) -> Set[str]:
+        users = []
 
         def _get_data(params) -> (List[str]):
             url = f'{self._get_graphql_query_url()}&variables={json.dumps(params)}'
@@ -39,8 +39,8 @@ class UserList(abc.ABC):
             pre_element = get_browser().find_element_by_tag_name('pre')
             data = json.loads(pre_element.text)
 
-            followers_data = data['data']['user'][self.key_name]
-            return followers_data
+            users_data = data['data']['user'][self.key_name]
+            return users_data
 
         params = {'id': self._user_id, 'include_reel': 'true', 'fetch_mutual': 'true', 'first': 50}
         has_next_page = False
@@ -53,7 +53,7 @@ class UserList(abc.ABC):
             users_page = users_data['edges']
             users_list = [user['node']['username'] for user in users_page]
 
-            user_followers.append(users_list)
+            users.append(users_list)
 
             has_next_page = users_data['page_info']['has_next_page']
 
@@ -63,14 +63,14 @@ class UserList(abc.ABC):
             end_cursor = users_data['page_info']['end_cursor']
             params['after'] = end_cursor
 
-        user_followers = list(itertools.chain.from_iterable(user_followers))
+        users = list(itertools.chain.from_iterable(users))
 
         if self._randomize:
-            random.shuffle(user_followers)
+            random.shuffle(users)
 
-        return set(user_followers)
+        return set(users)
 
-    def _get_graphql_query_url(self):
+    def _get_graphql_query_url(self) -> str:
         return f'view-source:https://www.instagram.com/graphql/query/?query_hash={self._get_query_hash()}'
 
     def __iter__(self):
@@ -80,5 +80,5 @@ class UserList(abc.ABC):
         return len(self._users)
 
     @abc.abstractmethod
-    def _get_query_hash(self):
+    def _get_query_hash(self) -> str:
         pass
