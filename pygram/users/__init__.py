@@ -1,10 +1,8 @@
 """Interactions with Instagram users."""
 import logging
-import json
-import random
 import time
 from functools import lru_cache
-from typing import List, Iterator
+from typing import Iterator
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
@@ -15,6 +13,7 @@ from ..browser import get_browser
 from ..constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
 from ..xpath import FOLLOW_BUTTON_XPATH
 from .followers import UserFollowers
+from .followings import UserFollowings
 
 
 logger = logging.getLogger(__name__)
@@ -28,46 +27,6 @@ class InstagramUserOperationError(Exception):
 
 class UnfollowUserError(InstagramUserOperationError):
     """Error when trying to unfollow Instagram user."""
-
-
-def user_followings(user_id: int):
-    def _get_user_followings_data(params) -> (List[str]):
-        url = f'{graphql_query_url}&variables={json.dumps(params)}'
-        get_browser().get(url)
-
-        pre_element = get_browser().find_element_by_tag_name('pre')
-        data = json.loads(pre_element.text)
-
-        followings_data = data['data']['user']['edge_follow']
-        return followings_data
-
-    # NOTE: It seems that the query hash for obtaining followings is different than the hash for
-    # obtaining followers.
-    query_hash = '58712303d941c6855d4e888c5f0cd22f'
-    graphql_query_url = (
-        f'view-source:https://www.instagram.com/graphql/query/?query_hash={query_hash}'
-    )
-
-    has_next_page = False
-
-    params = {'id': user_id, 'first': 50}
-    while True:
-        if has_next_page:
-            time.sleep(random.randint(2, 6))
-
-        followings_data = _get_user_followings_data(params)
-        followings_page = followings_data['edges']
-        followings_list = [user['node']['username'] for user in followings_page]
-
-        yield followings_list
-
-        has_next_page = followings_data['page_info']['has_next_page']
-
-        if not has_next_page:
-            break
-
-        end_cursor = followings_data['page_info']['end_cursor']
-        params['after'] = end_cursor
 
 
 class InstagramUser:
@@ -154,9 +113,7 @@ class InstagramUser:
 
     def get_followings(self) -> Iterator[str]:
         user_id = self._get_user_id()
-
-        for page in user_followings(user_id):
-            yield from page
+        return UserFollowings(user_id, randomize=False)
 
     @lru_cache(maxsize=128)
     def get_followings_count(self) -> int:
