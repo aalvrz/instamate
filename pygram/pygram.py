@@ -197,9 +197,11 @@ class Pygram:
 
         pygram_user = InstagramUser(self.username)
         followers = set(pygram_user.get_followers())
+        followings = set(pygram_user.get_followings())
 
-        # Only keep users that don't follow back
+        # Only keep users that don't follow back and that we are still following
         users_to_unfollow = {i.username for i in interactions if i.username not in followers}
+        users_to_unfollow = users_to_unfollow & followings
 
         for user in users_to_unfollow:
             ig_user = InstagramUser(user)
