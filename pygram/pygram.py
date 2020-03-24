@@ -26,6 +26,7 @@ from .db import get_database
 from .sms import SMSClient
 from .utils import get_follow_users_duration
 from .users import InstagramUser, UnfollowUserError
+from .users.followers import FollowParameters
 from .workspace import UserWorkspace
 
 
@@ -121,13 +122,18 @@ class Pygram:
         user = InstagramUser(username)
         return user.get_followers()
 
-    def follow_user_followers(self, username: str, amount: int = 100):
+    def follow_user_followers(
+        self, username: str, amount: int = 100, parameters: FollowParameters = None
+    ):
         """
         Obtains the list of followers of a specific user and follows them.
         """
 
         time_estimate = get_follow_users_duration(amount)
         logger.info(f'Starting to follow {amount} users. This will take aprox. {time_estimate}')
+
+        if parameters:
+            logger.info(f'Follow parameters: {parameters}')
 
         logger.info(f"Obtaining {username}'s followers.")
         user = InstagramUser(username)
@@ -141,6 +147,14 @@ class Pygram:
                 continue
 
             ig_follower = InstagramUser(follower_username)
+
+            # Check if this user passes the follow parameters specified
+            if parameters:
+                activity_counts = ig_follower.get_all_activity_counts()
+                if not parameters.should_follow(*activity_counts):
+                    logger.info(f'User {follower_username} does not pass parameters. Skipping.')
+                    continue
+
             following_status = ig_follower.get_following_status(self.username)
 
             if following_status == FollowingStatus.NOT_FOLLOWING:

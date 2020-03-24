@@ -2,7 +2,7 @@
 import logging
 import time
 from functools import lru_cache
-from typing import Iterator
+from typing import Iterator, Tuple
 
 from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
@@ -114,6 +114,21 @@ class InstagramUser:
     def get_followings(self) -> Iterator[str]:
         user_id = self._get_user_id()
         return UserFollowings(user_id, randomize=False)
+
+    def get_all_activity_counts(self) -> Tuple[int, int, int]:
+        """
+        Returns 3 item tuple containing counts for this user's total posts, followers, and
+        followings.
+        """
+
+        get_browser().navigate(self.user_profile_link)
+        time.sleep(3)
+
+        followings_count = self.get_followings_count()
+        total_posts_count = self.get_total_posts_count()
+        followers_count = self.get_followers_count()
+
+        return (total_posts_count, followers_count, followings_count)
 
     @lru_cache(maxsize=128)
     def get_followings_count(self) -> int:
