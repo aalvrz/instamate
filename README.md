@@ -14,9 +14,9 @@ import datetime
 from pygram import Pygram
 
 
-session = Pygram('myusername', 'password')
+pygram = Pygram('myusername', 'password')
 
-with session:
+with pygram:
     # Following user's followers
     pygram.follow_user_followers('iguser', amount=100)
 
@@ -24,4 +24,24 @@ with session:
     five_days_ago = datetime.datetime.now() - datetime.timedelta(days=5)
     pygram.unfollow_users(until_datetime=five_days_ago)
 
+```
+
+### Limiting which users to follow
+
+Parameters can be provided to indicate which users to follow:
+
+```python
+from pygram import FollowParameters, Pygram
+
+
+with pygram:
+    pygram.follow_user_followers(
+        'user1',
+        amount=100,
+        parameters=FollowParameters(
+            min_posts_count=100,
+            min_followers=200,
+            min_followings=300,
+        )
+    )
 ```
