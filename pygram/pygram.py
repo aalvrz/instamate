@@ -10,22 +10,16 @@ Commands:
 import datetime
 import logging
 import sys
-import time
 from typing import Dict
 
 from .auth import Authenticator
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .db import get_database
-from .following import (
-    FOLLOW_BREAK_WAIT_TIME,
-    FOLLOW_COUNT_PAUSE_THRESHOLD,
-    FOLLOW_USER_WAIT_TIME,
-    FollowHandler,
-    FollowParameters,
-)
+from .following import FollowHandler, FollowParameters
+from .unfollowing import UnfollowHandler
 from .sms import SMSClient
-from .users import InstagramUser, UnfollowUserError
+from .users import InstagramUser
 from .workspace import UserWorkspace
 
 
@@ -151,44 +145,7 @@ class Pygram:
 
         logger.info('Starting to unfollow users...')
 
-        interactions = database.get_user_interactions(
-            profile_username=self.username, until_datetime=until_datetime
-        )
+        handler = UnfollowHandler(self.username, until_datetime)
+        self.unfollows_count = handler.unfollow_users()
 
-        if len(interactions) == 0:
-            logger.info('No Pygram followed users to unfollow. Quitting.')
-            return
-
-        pygram_user = InstagramUser(self.username)
-        followers = set(pygram_user.get_followers())
-        followings = set(pygram_user.get_followings())
-
-        # Only keep users that don't follow back and that we are still following
-        users_to_unfollow = {i.username for i in interactions if i.username not in followers}
-        users_to_unfollow = users_to_unfollow & followings
-
-        for user in users_to_unfollow:
-            ig_user = InstagramUser(user)
-
-            try:
-                ig_user.unfollow()
-            except UnfollowUserError as ex:
-                logger.warning(f'Error trying to unfollow user {user}: {ex}. Skipping user.')
-                continue
-            else:
-                self.unfollows_count += 1
-                logger.info(
-                    f'Unfollowed user {user} [{self.unfollows_count}/{len(users_to_unfollow)}]'
-                )
-
-                time.sleep(FOLLOW_USER_WAIT_TIME)
-
-            if (
-                self.unfollows_count > 0
-                and self.unfollows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0
-            ):
-                logger.info(
-                    f'Unfollowed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. '
-                    + f'Sleeping for {FOLLOW_BREAK_WAIT_TIME}'
-                )
-                time.sleep(FOLLOW_BREAK_WAIT_TIME)
+        logger.info(f'Unfollowed a total of {self.unfollows_count} users')
