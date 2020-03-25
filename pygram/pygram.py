@@ -15,18 +15,17 @@ from typing import Dict
 
 from .auth import Authenticator
 from .browser import get_browser
-from .constants import (
+from .constants import INSTAGRAM_HOMEPAGE_URL
+from .db import get_database
+from .following import (
     FOLLOW_BREAK_WAIT_TIME,
     FOLLOW_COUNT_PAUSE_THRESHOLD,
     FOLLOW_USER_WAIT_TIME,
-    INSTAGRAM_HOMEPAGE_URL,
-    FollowingStatus,
+    FollowHandler,
+    FollowParameters,
 )
-from .db import get_database
 from .sms import SMSClient
-from .utils import get_follow_users_duration
 from .users import InstagramUser, UnfollowUserError
-from .users.followers import FollowParameters
 from .workspace import UserWorkspace
 
 
@@ -129,62 +128,13 @@ class Pygram:
         Obtains the list of followers of a specific user and follows them.
         """
 
-        time_estimate = get_follow_users_duration(amount)
-        logger.info(f'Starting to follow {amount} users. This will take aprox. {time_estimate}')
-
-        if parameters:
-            logger.info(f'Follow parameters: {parameters}')
-
         logger.info(f"Obtaining {username}'s followers.")
+
         user = InstagramUser(username)
         user_followers = user.get_followers(randomize=True)
 
-        follow_history = database.get_user_interactions(profile_username=self.username)
-        follow_history = {i.username for i in follow_history}
-
-        for follower_username in user_followers:
-            if follower_username in follow_history:
-                continue
-
-            ig_follower = InstagramUser(follower_username)
-
-            # Check if this user passes the follow parameters specified
-            if parameters:
-                activity_counts = ig_follower.get_all_activity_counts()
-                if not parameters.should_follow(*activity_counts):
-                    logger.info(f'User {follower_username} does not pass parameters. Skipping.')
-                    continue
-
-            following_status = ig_follower.get_following_status(self.username)
-
-            if following_status == FollowingStatus.NOT_FOLLOWING:
-                ig_follower.follow()
-
-                self.follows_count += 1
-                database.record_user_interaction(
-                    profile_username=self.username,
-                    user_username=follower_username,
-                    followed_at=datetime.datetime.now(),
-                )
-
-                logger.info(f'Followed user {follower_username} [{self.follows_count}/{amount}]')
-
-                time.sleep(FOLLOW_USER_WAIT_TIME)
-            else:
-                logger.info(
-                    f'Skipping user {follower_username} because follow status is {following_status}'
-                )
-                time.sleep(3)
-
-            if self.follows_count == amount:
-                break
-
-            if self.follows_count > 0 and self.follows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0:
-                logger.info(
-                    f'Followed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. '
-                    + f'Sleeping for {FOLLOW_BREAK_WAIT_TIME}'
-                )
-                time.sleep(FOLLOW_BREAK_WAIT_TIME)
+        handler = FollowHandler(user=self.username, parameters=parameters)
+        self.follows_count = handler.follow_users(users_to_follow=user_followers, amount=amount)
 
         logger.info(f"Finished following {amount} of {username}'s followers")
 

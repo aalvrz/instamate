@@ -1,5 +1,5 @@
+from .following import FollowParameters
 from .pygram import Pygram
-from .users.followers import FollowParameters
 
 
 ___version__ = '0.1.0'

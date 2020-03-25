@@ -1,4 +1,4 @@
-from pygram.users.followers import FollowParameters
+from pygram.following import FollowParameters
 
 
 class TestFollowParameters:
