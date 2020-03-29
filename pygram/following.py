@@ -126,9 +126,7 @@ class FollowHandler:
 
     def _record_user_interaction(self, username: str):
         get_database().record_user_interaction(
-            profile_username=self.username,
-            user_username=username,
-            followed_at=datetime.datetime.now(),
+            profile_username=self.user, user_username=username, followed_at=datetime.datetime.now()
         )
 
     @staticmethod
