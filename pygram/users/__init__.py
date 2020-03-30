@@ -30,6 +30,10 @@ class UnfollowUserError(InstagramUserOperationError):
 
 
 class InstagramUser:
+
+    # Base query for obtaining certain user data
+    base_query = 'return window.__additionalData[Object.keys(window.__additionalData)[0]].data.'
+
     def __init__(self, username: str):
         self.username = username.strip().lower()
         self.user_profile_link = f'{INSTAGRAM_HOMEPAGE_URL}/{self.username}/'
@@ -83,6 +87,27 @@ class InstagramUser:
                 pass
 
         return is_private
+
+    @property
+    def is_business_account(self) -> bool:
+        is_business_account = False
+
+        get_browser().navigate(self.user_profile_link)
+
+        query = 'graphql.user.is_business_account'
+        try:
+            is_business_account = get_browser().execute_script(self.base_query + query)
+        except WebDriverException:
+            try:
+                get_browser().execute_script('location.reload()')
+
+                is_business_account = get_browser().execute_script(
+                    'return window._sharedData.entry_data.ProfilePage[0].' + query
+                )
+            except WebDriverException as ex:
+                logging.error(f'Error determining if {self.username} is a business account: {ex}')
+
+        return is_business_account
 
     @lru_cache(maxsize=128)
     def get_followers_count(self) -> int:
