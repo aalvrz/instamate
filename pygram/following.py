@@ -20,10 +20,17 @@ logger = logging.getLogger(__name__)
 class FollowParameters:
     """Parameters to determine if a user should be followed"""
 
-    def __init__(self, min_posts_count: int = 0, min_followers: int = 0, min_followings: int = 0):
+    def __init__(
+        self,
+        min_posts_count: int = 0,
+        min_followers: int = 0,
+        min_followings: int = 0,
+        skip_business_accounts: bool = False,
+    ):
         self.min_posts_count = min_posts_count
         self.min_followers = min_followers
         self.min_followings = min_followings
+        self.skip_business_accounts = skip_business_accounts
 
     def __str__(self):
         return 'Min posts: {0} | Min followers: {1} | Min followings: {2}'.format(
@@ -117,8 +124,11 @@ class FollowHandler:
 
     def _user_satisfies_parameters(self, ig_user: InstagramUser) -> bool:
         if self.parameters:
-            activity_counts = ig_user.get_all_activity_counts()
+            if self.parameters.skip_business_accounts:
+                if ig_user.is_business_account:
+                    return False
 
+            activity_counts = ig_user.get_all_activity_counts()
             if not self.parameters.should_follow(*activity_counts):
                 return False
 
