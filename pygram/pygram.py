@@ -90,9 +90,7 @@ class Pygram:
         logger.info('Saving account progress...')
 
         user = InstagramUser(self.username)
-        following_count = user.get_followings_count()
-        followers_count = user.get_followers_count()
-        posts_count = user.get_total_posts_count()
+        posts_count, followers_count, following_count = user.get_all_activity_counts()
 
         database.record_account_progress(
             username=self.username,

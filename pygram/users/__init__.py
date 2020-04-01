@@ -146,8 +146,8 @@ class InstagramUser:
         followings.
         """
 
-        get_browser().navigate(self.user_profile_link)
         time.sleep(3)
+        get_browser().navigate(self.user_profile_link)
 
         followings_count = self.get_followings_count()
         total_posts_count = self.get_total_posts_count()
@@ -159,6 +159,7 @@ class InstagramUser:
     def get_followings_count(self) -> int:
         """Navigates to the user's profile and returns the number of followings of this user."""
 
+        time.sleep(3)
         get_browser().navigate(self.user_profile_link)
 
         try:
