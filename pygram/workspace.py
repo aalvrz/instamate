@@ -1,11 +1,16 @@
+import logging
 import os
 import pickle
 from typing import Dict, List
 
 from .exceptions import PygramException
+from .logging import PYGRAM_LOG_FORMATTER
 
 
 DEFAULT_WORKSPACES_PATH = os.path.expanduser('~/Pygram')
+
+
+logger = logging.getLogger('pygram')
 
 
 class WorkspaceAlreadyExistsException(PygramException):
@@ -36,6 +41,8 @@ class UserWorkspace:
 
         self._cookie_path = os.path.join(self.path, f'{self._username}_cookie.pkl')
 
+        self._setup_file_logger()
+
     def _create(self):
         """
         Creates the workspace directory using the path provided.
@@ -43,6 +50,13 @@ class UserWorkspace:
 
         if not self.exists:
             os.makedirs(self.path)
+
+    def _setup_file_logger(self):
+        """Adds additional logging to a log file in the user workspace."""
+
+        handler = logging.FileHandler(os.path.join(self.path, 'logs.txt'))
+        handler.setFormatter(PYGRAM_LOG_FORMATTER)
+        logger.addHandler(handler)
 
     def get_cookies(self) -> List[Dict]:
         """

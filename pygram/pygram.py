@@ -9,7 +9,6 @@ Commands:
 """
 import datetime
 import logging
-import sys
 from typing import Dict
 
 from .auth import Authenticator
@@ -17,15 +16,14 @@ from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .db import get_database
 from .following import FollowHandler, FollowParameters
+from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
 from .unfollowing import UnfollowHandler
 from .sms import SMSClient
 from .users import InstagramUser
 from .workspace import UserWorkspace
 
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger('pygram')
 database = get_database()
 
 
@@ -51,6 +49,8 @@ class Pygram:
         if sms_config:
             self._sms_client = SMSClient(**sms_config)
 
+        self._setup_logger()
+
         self.workspace = UserWorkspace(self.username)
 
         database.create_profile(self.username)
@@ -73,6 +73,17 @@ class Pygram:
 
         if not value:
             self._record_session_activity()
+
+    def _setup_logger(self):
+        logger.setLevel(logging.DEBUG)
+
+        handler = logging.StreamHandler()
+        handler.setFormatter(PYGRAM_LOG_FORMATTER)
+
+        # Filters attached to the parent logger DO NOT propagate to child loggers, this is why we
+        # attach the filter to the handler instead.
+        handler.addFilter(PygramLoggerContextFilter(self.username))
+        logger.addHandler(handler)
 
     def _login(self):
         """
