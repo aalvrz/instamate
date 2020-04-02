@@ -14,7 +14,7 @@ FOLLOW_BREAK_WAIT_TIME = 600
 FOLLOW_COUNT_PAUSE_THRESHOLD = 20
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('pygram.' + __name__)
 
 
 class FollowParameters:

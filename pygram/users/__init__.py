@@ -16,7 +16,7 @@ from .followers import UserFollowers
 from .followings import UserFollowings
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('pygram.' + __name__)
 
 
 class InstagramUserOperationError(Exception):

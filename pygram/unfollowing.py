@@ -8,7 +8,7 @@ from .following import FOLLOW_USER_WAIT_TIME, FOLLOW_COUNT_PAUSE_THRESHOLD, FOLL
 from .users import InstagramUser, UnfollowUserError
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('pygram.' + __name__)
 
 
 class UnfollowHandler:
