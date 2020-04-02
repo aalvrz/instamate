@@ -56,7 +56,11 @@ class UserWorkspace:
 
         handler = logging.FileHandler(os.path.join(self.path, 'logs.txt'))
         handler.setFormatter(PYGRAM_LOG_FORMATTER)
-        logger.addHandler(handler)
+
+        # Multiple instantiations of a `UserWorkspace` will result in repeated additions of
+        # FileHandlers. Therefore check if a FileHandler already exists
+        if any(isinstance(handler, logging.FileHandler) for handler in logger.handlers):
+            logger.addHandler(handler)
 
     def get_cookies(self) -> List[Dict]:
         """
