@@ -82,7 +82,7 @@ class FollowHandler:
         for username in users_to_follow:
             # Do not attempt to follow user's that have already been followed in the past using
             # Pygram
-            if username in self._follow_history:
+            if username in self._follow_history or username == self.user:
                 continue
 
             ig_user = InstagramUser(username)
