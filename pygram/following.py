@@ -6,7 +6,7 @@ from typing import Set
 
 from .constants import FollowingStatus
 from .db import get_database
-from .users import InstagramUser
+from .users import InstagramUser, InstagramUserOperationError
 
 
 FOLLOW_USER_WAIT_TIME = 60
@@ -128,7 +128,11 @@ class FollowHandler:
                 if ig_user.is_business_account:
                     return False
 
-            activity_counts = ig_user.get_all_activity_counts()
+            try:
+                activity_counts = ig_user.get_all_activity_counts()
+            except InstagramUserOperationError:
+                return False
+
             if not self.parameters.should_follow(*activity_counts):
                 return False
 
