@@ -106,7 +106,7 @@ class Authenticator:
 
     def _wait_for_login_page(self, seconds=10):
         try:
-            WebDriverWait(get_browser(), seconds).until(EC.title_contains('Login'))
+            WebDriverWait(get_browser(), seconds).until(EC.title_contains('Instagram'))
         except TimeoutException:
             raise AuthenticationError('Could not find login page')
 
