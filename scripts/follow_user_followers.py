@@ -10,7 +10,7 @@ load_dotenv()
 
 USERNAME = os.getenv("INSTAGRAM_USERNAME")
 PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
-SOURCE_USERNAME = ""
+SOURCE_USERNAME = "hondurastips"
 
 
 if __name__ == "__main__":
