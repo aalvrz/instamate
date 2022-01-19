@@ -1,11 +1,10 @@
 """Script that outputs common followers between two users."""
-from pygram.users import InstagramUser
-
 import os
 
 from dotenv import load_dotenv
 
-from pygram import FollowParameters, Pygram
+from pygram.users import InstagramUser
+from pygram import Pygram
 
 
 load_dotenv()
