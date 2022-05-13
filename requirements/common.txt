@@ -1,3 +1,4 @@
 selenium==3.141.0
 peewee==3.13.1
 twilio==6.36.0
+python-dotenv==0.20.0
