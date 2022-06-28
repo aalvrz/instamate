@@ -38,7 +38,6 @@ class UserWorkspace:
             raise ValueError("'%s' is not a valid username for creating workspace" % username)
 
         self._username = username
-        logger.info("Initializing workspace for user %s" % username)
 
         self.path = os.path.join(DEFAULT_WORKSPACES_PATH, self._username)
         self._create()
@@ -51,8 +50,8 @@ class UserWorkspace:
         """
         Creates the workspace directory using the path provided.
         """
-
         if not self.exists:
+            logger.info("Creating new workspace for user %s" % self._username)
             os.makedirs(self.path)
 
     def _setup_file_logger(self):
