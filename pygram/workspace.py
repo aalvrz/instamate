@@ -7,10 +7,10 @@ from .exceptions import PygramException
 from .logging import PYGRAM_LOG_FORMATTER
 
 
-DEFAULT_WORKSPACES_PATH = os.path.expanduser('~/Pygram')
+DEFAULT_WORKSPACES_PATH = os.path.expanduser("~/Pygram")
 
 
-logger = logging.getLogger('pygram')
+logger = logging.getLogger("pygram")
 
 
 class WorkspaceAlreadyExistsException(PygramException):
@@ -35,11 +35,12 @@ class UserWorkspace:
 
     def __init__(self, username):
         self._username = username
+        logger.info("Initializing workspace for user %s" % username)
 
         self.path = os.path.join(DEFAULT_WORKSPACES_PATH, self._username)
         self._create()
 
-        self._cookie_path = os.path.join(self.path, f'{self._username}_cookie.pkl')
+        self._cookie_path = os.path.join(self.path, f"{self._username}_cookie.pkl")
 
         self._setup_file_logger()
 
@@ -54,7 +55,7 @@ class UserWorkspace:
     def _setup_file_logger(self):
         """Adds additional logging to a log file in the user workspace."""
 
-        handler = logging.FileHandler(os.path.join(self.path, 'logs.txt'))
+        handler = logging.FileHandler(os.path.join(self.path, "logs.txt"))
         handler.setFormatter(PYGRAM_LOG_FORMATTER)
 
         # Multiple instantiations of a `UserWorkspace` will result in repeated additions of
@@ -68,7 +69,7 @@ class UserWorkspace:
         """
 
         try:
-            cookies = [cookie for cookie in pickle.load(open(self._cookie_path, 'rb'))]
+            cookies = [cookie for cookie in pickle.load(open(self._cookie_path, "rb"))]
         except FileNotFoundError:
             raise CookiesFileNotFoundError
 
@@ -76,7 +77,7 @@ class UserWorkspace:
 
     def store_cookies(self, cookies):
         """Store cookies in the user workspace."""
-        pickle.dump(cookies, open(self._cookie_path, 'wb'))
+        pickle.dump(cookies, open(self._cookie_path, "wb"))
 
     @property
     def exists(self):
