@@ -34,6 +34,9 @@ class UserWorkspace:
     """
 
     def __init__(self, username):
+        if not username:
+            raise ValueError("'%s' is not a valid username for creating workspace" % username)
+
         self._username = username
         logger.info("Initializing workspace for user %s" % username)
 
