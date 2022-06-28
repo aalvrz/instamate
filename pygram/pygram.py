@@ -23,8 +23,7 @@ from .users import InstagramUser
 from .workspace import UserWorkspace
 
 
-logger = logging.getLogger('pygram')
-database = get_database()
+logger = logging.getLogger("pygram")
 
 
 class Pygram:
@@ -53,7 +52,8 @@ class Pygram:
 
         self.workspace = UserWorkspace(self.username)
 
-        database.create_profile(self.username)
+        self.database = get_database()
+        self.database.create_profile(self.username)
 
         self.follows_count = 0
         self.unfollows_count = 0
@@ -69,7 +69,7 @@ class Pygram:
 
     def __exit__(self, type, value, traceback):
         get_browser().quit()
-        database.close()
+        self.database.close()
 
         if not value:
             self._record_session_activity()
@@ -95,16 +95,19 @@ class Pygram:
         authenticator = Authenticator(self.username, self.password)
         authenticator.login()
 
-        logger.info('Logged in successfully.')
+        logger.info("Logged in successfully.")
 
     def _record_account_progress(self):
-        logger.info('Saving account progress...')
+        logger.info("Saving account progress...")
 
         user = InstagramUser(self.username)
         posts_count, followers_count, following_count = user.get_all_activity_counts()
-        logger.info('Posts: %d | Followers: %d | Following: %d' % (posts_count, followers_count, following_count))
+        logger.info(
+            "Posts: %d | Followers: %d | Following: %d"
+            % (posts_count, followers_count, following_count)
+        )
 
-        database.record_account_progress(
+        self.database.record_account_progress(
             username=self.username,
             followers_count=followers_count,
             following_count=following_count,
@@ -112,7 +115,7 @@ class Pygram:
         )
 
     def _record_session_activity(self):
-        database.record_activity(
+        self.database.record_activity(
             username=self.username,
             follows_count=self.follows_count,
             unfollows_count=self.unfollows_count,
@@ -153,9 +156,9 @@ class Pygram:
                                before. Users followed after this time will not be unfollowed.
         """
 
-        logger.info('Starting to unfollow users...')
+        logger.info("Starting to unfollow users...")
 
         handler = UnfollowHandler(self.username, until_datetime)
         self.unfollows_count = handler.unfollow_users()
 
-        logger.info(f'Unfollowed a total of {self.unfollows_count} users')
+        logger.info(f"Unfollowed a total of {self.unfollows_count} users")
