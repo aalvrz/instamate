@@ -20,7 +20,10 @@ PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
 
 
 if __name__ == "__main__":
-    username: str = sys.argv[1]
+    try:
+        username: str = sys.argv[1]
+    except IndexError:
+        raise ValueError("You must provide an Instagram username")
 
     pygram = Pygram(USERNAME, PASSWORD)
 
