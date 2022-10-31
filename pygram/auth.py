@@ -72,7 +72,7 @@ class Authenticator:
         # successful, the user should show as logged in after refreshing the
         # page.
         self._load_user_cookies()
-        get_browser().execute_script('location.reload()')
+        get_browser().execute_script("location.reload()")
         time.sleep(2)
 
     def _find_create_account_or_login_div(self):
@@ -85,13 +85,13 @@ class Authenticator:
         """
         try:
             login_element = WebDriverWait(get_browser(), 10).until(
-                EC.presence_of_element_located((By.XPATH, "//button[text()='Log In']"))
+                EC.presence_of_element_located((By.XPATH, "//button[text()='Log in']"))
             )
         except TimeoutException:
             try:
                 login_element = get_browser().find_element_by_xpath("//a[text()='Log in']")
             except NoSuchElementException:
-                raise AuthenticationError('Unable to locate log in element')
+                raise AuthenticationError("Unable to locate log in element")
 
         return login_element
 
@@ -106,9 +106,9 @@ class Authenticator:
 
     def _wait_for_login_page(self, seconds=10):
         try:
-            WebDriverWait(get_browser(), seconds).until(EC.title_contains('Instagram'))
+            WebDriverWait(get_browser(), seconds).until(EC.title_contains("Instagram"))
         except TimeoutException:
-            raise AuthenticationError('Could not find login page')
+            raise AuthenticationError("Could not find login page")
 
     def _fetch_username_input_element(self, seconds: int = 10):
         """
@@ -125,7 +125,7 @@ class Authenticator:
                 EC.presence_of_element_located((By.XPATH, "//input[@name='username']"))
             )
         except TimeoutException:
-            raise AuthenticationError('Could not find username input element')
+            raise AuthenticationError("Could not find username input element")
 
         return username_element
 
@@ -184,27 +184,27 @@ class Authenticator:
         # counts.
         try:
             activity_counts = get_browser().execute_script(
-                'return window._sharedData.activity_counts'
+                "return window._sharedData.activity_counts"
             )
         except WebDriverException:
             try:
-                get_browser().excecute_script('location.reload()')
+                get_browser().excecute_script("location.reload()")
                 # TODO: Update activity
                 activity_counts = get_browser().execute_script(
-                    'return window._sharedData.activity_counts'
+                    "return window._sharedData.activity_counts"
                 )
             except WebDriverException:
                 activity_counts = None
 
         try:
             activity_counts_new = get_browser().execute_script(
-                'return window._sharedData.config.viewer'
+                "return window._sharedData.config.viewer"
             )
         except WebDriverException:
             try:
-                self.browser.execute_script('location.reload()')
+                self.browser.execute_script("location.reload()")
                 activity_counts_new = get_browser().execute_script(
-                    'return window._sharedData.config.viewer'
+                    "return window._sharedData.config.viewer"
                 )
             except WebDriverException:
                 activity_counts_new = None
