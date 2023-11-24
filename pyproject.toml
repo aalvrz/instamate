@@ -4,4 +4,5 @@ warn_return_any = false
 warn_unused_configs = true
 exclude = [
     "venv",
+    "scripts",
 ]
