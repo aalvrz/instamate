@@ -1,2 +1,7 @@
-[tool.black]
-line-length = 100
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = false
+warn_unused_configs = true
+exclude = [
+    "venv",
+]
