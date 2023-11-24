@@ -26,13 +26,8 @@ class AuthenticationError(PygramException):
     """Error raised when user authentication fails."""
 
 
-class Authenticator:
-    """
-    Logs into Instagram
-
-    The authenticator is responsible for waiting and locating the elements in
-    the DOM that allow entering the credentials provided for logging in.
-    """
+class AuthPage:
+    """Allows logging-in using Instagram's log-in screen."""
 
     def __init__(self, username: str, password: str, use_cookie: Optional[bool] = True):
         self.username = username

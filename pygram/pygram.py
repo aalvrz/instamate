@@ -11,7 +11,7 @@ import datetime
 import logging
 from typing import Dict
 
-from .auth import Authenticator
+from .auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .db import get_database
@@ -74,7 +74,7 @@ class Pygram:
 
         get_browser().get(INSTAGRAM_HOMEPAGE_URL)
 
-        authenticator = Authenticator(self.username, self.password)
+        authenticator = AuthPage(self.username, self.password)
         authenticator.login()
 
         logger.info("Logged in successfully.")
