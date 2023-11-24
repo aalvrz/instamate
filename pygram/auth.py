@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Optional
 
 from selenium.common.exceptions import (
     MoveTargetOutOfBoundsException,
@@ -33,18 +34,20 @@ class Authenticator:
     the DOM that allow entering the credentials provided for logging in.
     """
 
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str, password: str, use_cookie: Optional[bool] = True):
         self.username = username
         self.password = password
+        self.use_cookie = use_cookie
 
         self._user_workspace = UserWorkspace(self.username)
         self._cookie_loaded = False
 
-    def login(self):
-        try:
-            self._login_using_cookie()
-        except CookiesFileNotFoundError:
-            logger.warning("Could not login using auth cookie")
+    def login(self) -> None:
+        if self.use_cookie:
+            try:
+                self._login_using_cookie()
+            except CookiesFileNotFoundError:
+                logger.warning("Could not login using auth cookie")
 
         if self.is_user_logged_in():
             return
@@ -61,17 +64,18 @@ class Authenticator:
 
         password_input_element = self._fetch_password_input_element()
         self._enter_password(password_input_element)
-        time.sleep(1)
+        time.sleep(5)
 
         self._press_login_button(password_input_element)
         time.sleep(5)
 
-        # TODO: Handle "Save Your Login Info" dialog
+        self._save_login_info()
 
         if not self.is_user_logged_in():
             raise AuthenticationError
 
-        self._store_user_cookies()
+        if self.use_cookie:
+            self._store_user_cookies()
 
     def _login_using_cookie(self):
         # We will first try to log the user in using a cookie. If the login is
@@ -173,10 +177,20 @@ class Authenticator:
             .perform()
         )
 
+    def _save_login_info(self) -> None:
+        """Clicks on the 'Save Login Info' dialog button so that Instagrams saves the auth session."""
+
+        save_login_info_btn = get_browser().find_element(
+            By.XPATH, "//button[text()='Save Info']"
+        )
+
+        if save_login_info_btn:
+            ActionChains(get_browser()).move_to_element(
+                save_login_info_btn
+            ).click().perform()
+
     def _load_user_cookies(self):
-        """
-        Load a user cookies that already contain session data.
-        """
+        """Load all user cookies in the local workspace that already contain session data."""
 
         for cookie in self._user_workspace.get_cookies():
             get_browser().add_cookie(cookie)
@@ -184,9 +198,8 @@ class Authenticator:
         self._cookie_loaded = True
 
     def _store_user_cookies(self):
-        """
-        Create session cookies for user and store it in the user's workspace.
-        """
+        """Create session cookies for user and store it in the user's workspace."""
+
         self._user_workspace.store_cookies(get_browser().get_cookies())
 
     def is_user_logged_in(self) -> bool:

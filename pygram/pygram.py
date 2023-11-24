@@ -27,26 +27,11 @@ logger = logging.getLogger("pygram")
 
 
 class Pygram:
-    """
-    Initializes a Pygram session.
+    """Initializes a Pygram session."""
 
-    To enable SMS notifications, provide a `sms_config` dictionary argument:
-
-    {
-        'sid': 'Aaksdlkasdk',
-        'token': 'Xdkgouasd9f912',
-        'from_number': '+19732644152',
-        'to_number': '+1230349349',
-    }
-    """
-
-    def __init__(self, username: str, password: str, sms_config: Dict = None):
+    def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
-        self._sms_client = None
-
-        if sms_config:
-            self._sms_client = SMSClient(**sms_config)
 
         self._setup_logger()
 
@@ -62,7 +47,6 @@ class Pygram:
         get_browser().implicitly_wait(5)
 
         self._login()
-
         self._record_account_progress()
 
         return self
@@ -86,9 +70,8 @@ class Pygram:
         logger.addHandler(handler)
 
     def _login(self):
-        """
-        Login the user using the crendetials provided.
-        """
+        """Login the user using the crendetials provided."""
+
         get_browser().get(INSTAGRAM_HOMEPAGE_URL)
 
         authenticator = Authenticator(self.username, self.password)
