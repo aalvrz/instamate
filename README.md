@@ -4,6 +4,10 @@
 pip install pygram
 ```
 
+## Installing a web driver
+
+You will need to install a web driver such as [Geckodriver](https://github.com/mozilla/geckodriver/releases). Simply download a release binary and place it in your file system at `/usr/local/bin`.
+
 # Basic Usage
 
 Using Pygram is incredibly simple:
@@ -45,3 +49,7 @@ with pygram:
         )
     )
 ```
+
+## Troubleshooting
+
+- https://stackoverflow.com/questions/72405117/selenium-geckodriver-profile-missing-your-firefox-profile-cannot-be-loaded
