@@ -1,0 +1,5 @@
+-r requirements/common.txt
+
+mypy==1.7.1
+mypy-extensions==1.0.0
+ruff==0.1.6
