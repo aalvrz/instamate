@@ -89,8 +89,7 @@ class Pygram:
         """
         Login the user using the crendetials provided.
         """
-
-        get_browser().navigate(INSTAGRAM_HOMEPAGE_URL)
+        get_browser().get(INSTAGRAM_HOMEPAGE_URL)
 
         authenticator = Authenticator(self.username, self.password)
         authenticator.login()
@@ -101,18 +100,29 @@ class Pygram:
         logger.info("Saving account progress...")
 
         user = InstagramUser(self.username)
-        posts_count, followers_count, following_count = user.get_all_activity_counts()
-        logger.info(
-            "Posts: %d | Followers: %d | Following: %d"
-            % (posts_count, followers_count, following_count)
-        )
 
-        self.database.record_account_progress(
-            username=self.username,
-            followers_count=followers_count,
-            following_count=following_count,
-            total_posts_count=posts_count,
-        )
+        try:
+            (
+                posts_count,
+                followers_count,
+                following_count,
+            ) = user.get_all_activity_counts()
+        except Exception as ex:
+            logger.error(
+                "Could not obtain and record %s's activity counts" % user.username
+            )
+        else:
+            logger.info(
+                "Posts: %d | Followers: %d | Following: %d"
+                % (posts_count, followers_count, following_count)
+            )
+
+            self.database.record_account_progress(
+                username=self.username,
+                followers_count=followers_count,
+                following_count=following_count,
+                total_posts_count=posts_count,
+            )
 
     def _record_session_activity(self):
         self.database.record_activity(
@@ -141,7 +151,9 @@ class Pygram:
         user_followers = user.get_followers(randomize=True)
 
         handler = FollowHandler(user=self.username, parameters=parameters)
-        self.follows_count = handler.follow_users(users_to_follow=user_followers, amount=amount)
+        self.follows_count = handler.follow_users(
+            users_to_follow=user_followers, amount=amount
+        )
 
         logger.info(f"Finished following {amount} of {username}'s followers")
 

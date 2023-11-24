@@ -1,3 +1,4 @@
+import logging
 import time
 
 from selenium.common.exceptions import (
@@ -15,6 +16,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from .browser import get_browser
 from .exceptions import PygramException
 from .workspace import UserWorkspace, CookiesFileNotFoundError
+
+
+logger = logging.getLogger(__name__)
 
 
 class AuthenticationError(PygramException):
@@ -40,7 +44,7 @@ class Authenticator:
         try:
             self._login_using_cookie()
         except CookiesFileNotFoundError:
-            pass
+            logger.warning("Could not login using auth cookie")
 
         if self.is_user_logged_in():
             return
@@ -62,6 +66,8 @@ class Authenticator:
         self._press_login_button(password_input_element)
         time.sleep(5)
 
+        # TODO: Handle "Save Your Login Info" dialog
+
         if not self.is_user_logged_in():
             raise AuthenticationError
 
@@ -72,7 +78,7 @@ class Authenticator:
         # successful, the user should show as logged in after refreshing the
         # page.
         self._load_user_cookies()
-        get_browser().execute_script("location.reload()")
+        get_browser().refresh()
         time.sleep(2)
 
     def _find_create_account_or_login_div(self):
@@ -84,14 +90,11 @@ class Authenticator:
         :raises: AuthenticationError if no login element is found.
         """
         try:
-            login_element = WebDriverWait(get_browser(), 10).until(
-                EC.presence_of_element_located((By.XPATH, "//button[text()='Log in']"))
+            login_element = get_browser().find_element(
+                By.XPATH, "//div[text()='Log in']"
             )
-        except TimeoutException:
-            try:
-                login_element = get_browser().find_element_by_xpath("//a[text()='Log in']")
-            except NoSuchElementException:
-                raise AuthenticationError("Unable to locate log in element")
+        except NoSuchElementException:
+            raise AuthenticationError("Unable to locate log in element")
 
         return login_element
 
@@ -100,7 +103,12 @@ class Authenticator:
 
         if login_element is not None:
             try:
-                (ActionChains(get_browser()).move_to_element(login_element).click().perform())
+                (
+                    ActionChains(get_browser())
+                    .move_to_element(login_element)
+                    .click()
+                    .perform()
+                )
             except MoveTargetOutOfBoundsException:
                 login_element.click()
 
@@ -140,14 +148,17 @@ class Authenticator:
         )
 
     def _fetch_password_input_element(self):
-        password_element = get_browser().find_elements_by_xpath("//input[@name='password']")
+        password_element = get_browser().find_element(
+            By.XPATH, "//input[@name='password']"
+        )
         return password_element
 
     def _enter_password(self, password_input_element):
-        """Enters the provided password value in the input element."""
+        """Enters the provided password value in the password input element."""
+
         (
             ActionChains(get_browser())
-            .move_to_element(password_input_element[0])
+            .move_to_element(password_input_element)
             .click()
             .send_keys(self.password)
             .perform()
@@ -156,7 +167,7 @@ class Authenticator:
     def _press_login_button(self, password_input_element):
         (
             ActionChains(get_browser())
-            .move_to_element(password_input_element[0])
+            .move_to_element(password_input_element)
             .click()
             .send_keys(Keys.ENTER)
             .perform()
@@ -202,7 +213,7 @@ class Authenticator:
             )
         except WebDriverException:
             try:
-                self.browser.execute_script("location.reload()")
+                get_browser().refresh()
                 activity_counts_new = get_browser().execute_script(
                     "return window._sharedData.config.viewer"
                 )
