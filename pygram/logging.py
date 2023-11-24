@@ -2,8 +2,8 @@ import logging
 
 
 PYGRAM_LOG_FORMATTER = logging.Formatter(
-    '[%(asctime)s] %(name)-5s %(levelname)s [%(username)s]: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    "[%(asctime)s] %(name)-5s %(levelname)s [%(username)s]: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 

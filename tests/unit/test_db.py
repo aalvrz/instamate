@@ -18,7 +18,7 @@ def database() -> PygramDatabase:
 
 @pytest.fixture
 def profile() -> Profile:
-    profile = Profile.create(username='champaignepapi')
+    profile = Profile.create(username="champaignepapi")
     return profile
 
 
@@ -26,7 +26,7 @@ class TestPygramDatabase:
     def test_create_profile(self, database):
         assert Profile.select().count() == 0
 
-        username = 'sandman23'
+        username = "sandman23"
         database.create_profile(username)
 
         qs = Profile.select().where(Profile.username == username)
@@ -48,7 +48,10 @@ class TestPygramDatabase:
         assert AccountProgress.select().count() == 0
 
         database.record_account_progress(
-            username=profile.username, followers_count=45, following_count=100, total_posts_count=50
+            username=profile.username,
+            followers_count=45,
+            following_count=100,
+            total_posts_count=50,
         )
 
         progress_qs = AccountProgress.select().where(AccountProgress.profile == profile)
@@ -61,15 +64,18 @@ class TestPygramDatabase:
     def test_record_user_interaction(self, database, profile):
         assert UserInteraction.select().count() == 0
 
-        user_username = 'jizz332'
+        user_username = "jizz332"
         followed_at = datetime.datetime.now()
 
         database.record_user_interaction(
-            profile_username=profile.username, user_username=user_username, followed_at=followed_at
+            profile_username=profile.username,
+            user_username=user_username,
+            followed_at=followed_at,
         )
 
         interaction_qs = UserInteraction.select().where(
-            UserInteraction.profile == profile, UserInteraction.username == user_username
+            UserInteraction.profile == profile,
+            UserInteraction.username == user_username,
         )
 
         assert len(interaction_qs) == 1
@@ -86,10 +92,12 @@ class TestPygramDatabase:
     def test_get_user_interactions(self, database, profile):
         now = datetime.datetime.now()
 
-        usernames = ['supab1tch', 'distroboss12']
+        usernames = ["supab1tch", "distroboss12"]
         for username in usernames:
             database.record_user_interaction(
-                profile_username=profile.username, user_username=username, followed_at=now
+                profile_username=profile.username,
+                user_username=username,
+                followed_at=now,
             )
 
         interactions = database.get_user_interactions(profile_username=profile.username)
@@ -100,14 +108,18 @@ class TestPygramDatabase:
         seven_days_ago = now - datetime.timedelta(days=7)
 
         database.record_user_interaction(
-            profile_username=profile.username, user_username='beatzkilla', followed_at=five_days_ago
+            profile_username=profile.username,
+            user_username="beatzkilla",
+            followed_at=five_days_ago,
         )
         database.record_user_interaction(
-            profile_username=profile.username, user_username='nesly12', followed_at=seven_days_ago
+            profile_username=profile.username,
+            user_username="nesly12",
+            followed_at=seven_days_ago,
         )
 
         interactions = database.get_user_interactions(
             profile_username=profile.username, until_datetime=five_days_ago
         )
 
-        assert ['beatzkilla', 'nesly12'] == [i.username for i in interactions]
+        assert ["beatzkilla", "nesly12"] == [i.username for i in interactions]

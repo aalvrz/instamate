@@ -5,7 +5,7 @@ from .browser import get_browser
 
 
 INSTAGRAM_JAVASCRIPT_FILE_URL = (
-    'https://www.instagram.com/static/bundles/es6/Consumer.js/1f67555edbd3.js'
+    "https://www.instagram.com/static/bundles/es6/Consumer.js/1f67555edbd3.js"
 )
 
 

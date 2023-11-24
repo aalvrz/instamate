@@ -8,7 +8,7 @@ class Profile(Model):
 
     class Meta:
         database = None
-        table_name = 'profiles'
+        table_name = "profiles"
 
     username = CharField(unique=True)
 
@@ -16,7 +16,7 @@ class Profile(Model):
 class Activity(Model):
     """Records activity of a Pygram session."""
 
-    profile = ForeignKeyField(Profile, backref='activity')
+    profile = ForeignKeyField(Profile, backref="activity")
 
     likes = IntegerField(default=0)
     comments = IntegerField(default=0)
@@ -31,9 +31,9 @@ class AccountProgress(Model):
     """Records the progress over time of a Pygram user."""
 
     class Meta:
-        table_name = 'accounts_progress'
+        table_name = "accounts_progress"
 
-    profile = ForeignKeyField(Profile, backref='account_progress')
+    profile = ForeignKeyField(Profile, backref="account_progress")
 
     followers = IntegerField()
     following = IntegerField()
@@ -49,10 +49,10 @@ class UserInteraction(Model):
     """
 
     class Meta:
-        table_name = 'user_interactions'
-        indexes = ((('profile_id', 'username'), True),)
+        table_name = "user_interactions"
+        indexes = ((("profile_id", "username"), True),)
 
-    profile = ForeignKeyField(Profile, backref='user_interactions')
+    profile = ForeignKeyField(Profile, backref="user_interactions")
 
     username = CharField()
     followed_at = DateTimeField()

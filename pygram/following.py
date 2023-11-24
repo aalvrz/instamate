@@ -14,7 +14,7 @@ FOLLOW_BREAK_WAIT_TIME = 600
 FOLLOW_COUNT_PAUSE_THRESHOLD = 20
 
 
-logger = logging.getLogger('pygram.' + __name__)
+logger = logging.getLogger("pygram." + __name__)
 
 
 class FollowParameters:
@@ -33,11 +33,13 @@ class FollowParameters:
         self.skip_business_accounts = skip_business_accounts
 
     def __str__(self):
-        return 'Min posts: {0} | Min followers: {1} | Min followings: {2}'.format(
+        return "Min posts: {0} | Min followers: {1} | Min followings: {2}".format(
             self.min_posts_count, self.min_followers, self.min_followings
         )
 
-    def should_follow(self, posts_count: int, followers_count: int, followings_count: int) -> bool:
+    def should_follow(
+        self, posts_count: int, followers_count: int, followings_count: int
+    ) -> bool:
         return (
             posts_count >= self.min_posts_count
             and followers_count >= self.min_followers
@@ -72,12 +74,12 @@ class FollowHandler:
         follows_count = 0
 
         logger.info(
-            f'Starting to follow {amount} users. '
-            f'This will take aprox. {self.get_follow_duration(amount)}'
+            f"Starting to follow {amount} users. "
+            f"This will take aprox. {self.get_follow_duration(amount)}"
         )
 
         if self.parameters:
-            logger.info(f'Follow parameters: {self.parameters}')
+            logger.info(f"Follow parameters: {self.parameters}")
 
         for username in users_to_follow:
             # Do not attempt to follow user's that have already been followed in the past using
@@ -88,7 +90,7 @@ class FollowHandler:
             ig_user = InstagramUser(username)
 
             if not self._user_satisfies_parameters(ig_user):
-                logger.info(f'User {ig_user} does not pass parameters. Skipping.')
+                logger.info(f"User {ig_user} does not pass parameters. Skipping.")
                 time.sleep(3)
                 continue
 
@@ -100,10 +102,12 @@ class FollowHandler:
                 follows_count += 1
                 self._record_user_interaction(username)
 
-                logger.info(f'Followed user {username} [{follows_count}/{amount}]')
+                logger.info(f"Followed user {username} [{follows_count}/{amount}]")
                 time.sleep(FOLLOW_USER_WAIT_TIME)
             else:
-                logger.info(f'Skipping user {username} because follow status is {following_status}')
+                logger.info(
+                    f"Skipping user {username} because follow status is {following_status}"
+                )
                 time.sleep(3)
 
             if follows_count == amount:
@@ -111,15 +115,17 @@ class FollowHandler:
 
             if follows_count > 0 and follows_count % FOLLOW_COUNT_PAUSE_THRESHOLD == 0:
                 logger.info(
-                    f'Followed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. '
-                    + f'Sleeping for {FOLLOW_BREAK_WAIT_TIME}'
+                    f"Followed {FOLLOW_COUNT_PAUSE_THRESHOLD} users. "
+                    + f"Sleeping for {FOLLOW_BREAK_WAIT_TIME}"
                 )
                 time.sleep(FOLLOW_BREAK_WAIT_TIME)
 
         return follows_count
 
     def _get_follow_history(self) -> Set[str]:
-        follow_history = get_database().get_user_interactions(profile_username=self.user)
+        follow_history = get_database().get_user_interactions(
+            profile_username=self.user
+        )
         return {i.username for i in follow_history}
 
     def _user_satisfies_parameters(self, ig_user: InstagramUser) -> bool:
@@ -140,7 +146,9 @@ class FollowHandler:
 
     def _record_user_interaction(self, username: str):
         get_database().record_user_interaction(
-            profile_username=self.user, user_username=username, followed_at=datetime.datetime.now()
+            profile_username=self.user,
+            user_username=username,
+            followed_at=datetime.datetime.now(),
         )
 
     @staticmethod

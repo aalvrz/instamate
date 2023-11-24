@@ -5,8 +5,8 @@ from pygram.workspace import UserWorkspace
 
 @pytest.fixture
 def workspace(tmpdir, monkeypatch):
-    monkeypatch.setattr('pygram.workspace.DEFAULT_WORKSPACES_PATH', tmpdir)
-    workspace = UserWorkspace('wololo23')
+    monkeypatch.setattr("pygram.workspace.DEFAULT_WORKSPACES_PATH", tmpdir)
+    workspace = UserWorkspace("wololo23")
 
     return workspace
 

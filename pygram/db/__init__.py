@@ -7,7 +7,7 @@ from .models import AccountProgress, Activity, Profile, UserInteraction
 from ..workspace import DEFAULT_WORKSPACES_PATH
 
 
-DATABASE_PATH = os.path.join(DEFAULT_WORKSPACES_PATH, 'pygram.db')
+DATABASE_PATH = os.path.join(DEFAULT_WORKSPACES_PATH, "pygram.db")
 MODELS = (Profile, Activity, AccountProgress, UserInteraction)
 
 _DATABASE = None
@@ -24,7 +24,7 @@ class PygramDatabase:
     database_backend = SqliteDatabase
 
     def __init__(self, database_path=None):
-        database_path = database_path or ':memory:'
+        database_path = database_path or ":memory:"
 
         self.db = self.database_backend(database_path)
         self.db.connect()
@@ -68,7 +68,11 @@ class PygramDatabase:
         )
 
     def record_account_progress(
-        self, username: str, followers_count: int, following_count: int, total_posts_count: int
+        self,
+        username: str,
+        followers_count: int,
+        following_count: int,
+        total_posts_count: int,
     ):
         profile = Profile.get(Profile.username == username)
 
@@ -96,11 +100,15 @@ class PygramDatabase:
         self, profile_username: str, until_datetime: datetime.datetime = None
     ):
         interactions = (
-            UserInteraction.select().join(Profile).where(Profile.username == profile_username)
+            UserInteraction.select()
+            .join(Profile)
+            .where(Profile.username == profile_username)
         )
 
         if until_datetime:
-            interactions = interactions.where(UserInteraction.followed_at <= until_datetime)
+            interactions = interactions.where(
+                UserInteraction.followed_at <= until_datetime
+            )
 
         return interactions
 

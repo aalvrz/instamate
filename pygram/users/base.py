@@ -31,7 +31,7 @@ class UserList(abc.ABC):
     def _get_users(self) -> Set[str]:
         users = []
 
-        def get_user_data(params) -> (List[str]):
+        def get_user_data(params) -> List[str]:
             url = f"{self._get_graphql_query_url()}&variables={json.dumps(params)}"
             get_browser().get(url)
 
@@ -41,7 +41,12 @@ class UserList(abc.ABC):
             users_data = data["data"]["user"][self.key_name]
             return users_data
 
-        params = {"id": self._user_id, "include_reel": "true", "fetch_mutual": "true", "first": 50}
+        params = {
+            "id": self._user_id,
+            "include_reel": "true",
+            "fetch_mutual": "true",
+            "first": 50,
+        }
         has_next_page = False
 
         while True:

@@ -22,7 +22,5 @@ class SMSClient:
         Total Follows: {follows_count}"""
 
         self._client.messages.create(
-            to=self.to_number,
-            from_=self.from_number,
-            body=body
+            to=self.to_number, from_=self.from_number, body=body
         )

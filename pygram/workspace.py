@@ -35,7 +35,9 @@ class UserWorkspace:
 
     def __init__(self, username):
         if not username:
-            raise ValueError("'%s' is not a valid username for creating workspace" % username)
+            raise ValueError(
+                "'%s' is not a valid username for creating workspace" % username
+            )
 
         self._username = username
 
@@ -62,7 +64,9 @@ class UserWorkspace:
 
         # Multiple instantiations of a `UserWorkspace` will result in repeated additions of
         # FileHandlers. Therefore check if a FileHandler already exists
-        if not any(isinstance(handler, logging.FileHandler) for handler in logger.handlers):
+        if not any(
+            isinstance(handler, logging.FileHandler) for handler in logger.handlers
+        ):
             logger.addHandler(handler)
 
     def get_cookies(self) -> List[Dict]:

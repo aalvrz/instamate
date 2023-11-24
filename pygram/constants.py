@@ -1,11 +1,11 @@
 from enum import Enum
 
 
-INSTAGRAM_HOMEPAGE_URL = 'https://www.instagram.com'
+INSTAGRAM_HOMEPAGE_URL = "https://www.instagram.com"
 
-MEDIA_PHOTO = 'photo'
-MEDIA_VIDEO = 'video'
-MEDIA_CAROUSEL_ = 'carousel'
+MEDIA_PHOTO = "photo"
+MEDIA_VIDEO = "video"
+MEDIA_CAROUSEL_ = "carousel"
 
 
 class FollowingStatus(Enum):
@@ -15,9 +15,9 @@ class FollowingStatus(Enum):
 
     @classmethod
     def get_following_status_from_string(cls, value: str):
-        if value == 'Message':
+        if value == "Message":
             return cls.FOLLOWING
-        elif value == 'Requested':
+        elif value == "Requested":
             return cls.REQUESTED
 
         return cls.NOT_FOLLOWING
