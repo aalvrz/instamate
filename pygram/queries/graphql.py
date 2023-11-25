@@ -6,8 +6,6 @@ from typing import Any, Dict, List, Optional, Set
 
 import httpx
 
-from pygram.browser import get_browser
-
 
 GET_FOLLOWERS_QUERY_HASH = "c76146de99bb02f6415203be841dd25a"
 GET_FOLLOWINGS_QUERY_HASH = "d04b0a864b4b54837c0d870b0e77e076"
@@ -22,13 +20,8 @@ class GraphQLAPI:
         "https://www.instagram.com/graphql/query/?query_hash={query_hash}"
     )
 
-    def __init__(self):
-        self.browser = get_browser()
-
-        self.query_hash = self.get_graphql_query_hash()
-        self.graphql_query_url = self.base_graphql_query_url.format(
-            query_hash=self.query_hash
-        )
+    def __init__(self, client: httpx.Client):
+        self.client = client
 
     def get_followers(self, user_id: str, randomize: Optional[bool] = True) -> Set[str]:
         followers = self._get_users(
@@ -85,15 +78,10 @@ class GraphQLAPI:
         url = self.base_graphql_query_url.format(
             query_hash=query_hash
         ) + f"&variables={json.dumps(params)}"
-        # url = f"{self.graphql_query_url}&variables={json.dumps(params)}"
+
         logger.info("Requesting new page '%s'" % url)
 
-        cookies = {
-            cookie_dict["name"]: cookie_dict["value"]
-            for cookie_dict in self.browser.get_cookies()
-        }
-
-        response = httpx.get(url, cookies=cookies)
+        response = self.client.get(url)
         data = response.json()
 
         users_data = data["data"]["user"][key]

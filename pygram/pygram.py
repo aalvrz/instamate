@@ -9,20 +9,20 @@ Commands:
 """
 import datetime
 import logging
-from typing import Iterable
-from pygram.queries.graphql import GraphQLAPI
+from typing import Iterable, Optional
 
-from pygram.queries.user import GetUserDataQuery
+import httpx
 
 from .auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
-from .db import get_database
 from .following import FollowHandler, FollowParameters
 from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
 from .unfollowing import UnfollowHandler
 from .pages.profile import UserProfilePage
 from .workspace import UserWorkspace
+from pygram.queries.graphql import GraphQLAPI
+from pygram.queries.user import GetUserDataQuery
 
 
 logger = logging.getLogger("pygram")
@@ -32,28 +32,40 @@ class Pygram:
     """Initializes a Pygram session."""
 
     def __init__(self, username: str, password: str):
+        """
+        Args:
+            username (str): Instagram username of the user to authenticate as.
+            password (str): Instagram password of the user to authenticate as.
+        """
         self.username = username
         self.password = password
 
         self._setup_logger()
 
+        self.browser = get_browser()
         self.workspace = UserWorkspace(self.username)
 
-        self.database = get_database()
-        self.database.create_profile(self.username)
-
-        self.follows_count = 0
-        self.unfollows_count = 0
-
     def __enter__(self):
-        get_browser().implicitly_wait(5)
+        self.browser.implicitly_wait(5)
         self._login()
+
+        self.http_client = httpx.Client()
 
         return self
 
-    def __exit__(self, type, value, traceback):
-        get_browser().quit()
-        self.database.close()
+    def __exit__(self, type, exc_value, traceback):
+        self.browser.quit()
+        self.http_client.close()
+
+    def _init_http_client(self) -> None:
+        """Initializes an HTTP client with the cookies loaded for the web browser."""
+
+        cookies = {
+            cookie_dict["name"]: cookie_dict["value"]
+            for cookie_dict in self.browser.get_cookies()
+        }
+
+        self.http_client = httpx.Client(cookies=cookies)
 
     def _setup_logger(self):
         logger.setLevel(logging.DEBUG)
@@ -86,7 +98,7 @@ class Pygram:
             logger.error("Could not get user_id from query")
             return []
 
-        followers = GraphQLAPI().get_followers(user_id)
+        followers = GraphQLAPI(self.http_client).get_followers(user_id)
         return followers
 
     def get_user_followings(self, username: str) -> Iterable[str]:
@@ -99,7 +111,7 @@ class Pygram:
             logger.error("Could not get user_id from query")
             return []
 
-        followings = GraphQLAPI().get_followings(user_id)
+        followings = GraphQLAPI(self.http_client).get_followings(user_id)
         return followings
 
     def follow_user_followers(
@@ -121,7 +133,7 @@ class Pygram:
 
         logger.info(f"Finished following {amount} of {username}'s followers")
 
-    def unfollow_users(self, until_datetime: datetime.datetime = None):
+    def unfollow_users(self, until_datetime: Optional[datetime.datetime] = None):
         """
         Unfollow users that this account is following.
 
