@@ -9,17 +9,15 @@ Commands:
 """
 import datetime
 import logging
-from typing import Iterable, Optional
+from typing import Dict, Iterable, Optional
 
 import httpx
 
 from .pages.auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
-from .following import FollowHandler, FollowParameters
+from .following import FollowParameters
 from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
-from .unfollowing import UnfollowHandler
-from .pages.profile import UserProfilePage
 from .workspace import UserWorkspace
 from pygram.queries.graphql import GraphQLAPI
 from pygram.queries.user import GetUserDataQuery
@@ -44,6 +42,8 @@ class Pygram:
 
         self.browser = get_browser()
         self.workspace = UserWorkspace(self.username)
+
+        self.user_ids_cache: Dict[str, str] = {}
 
     def __enter__(self):
         self.browser.implicitly_wait(5)
@@ -88,11 +88,32 @@ class Pygram:
 
         logger.info("Logged in successfully.")
 
+    def get_instagram_user_id(self, username: str) -> Optional[str]:
+        """Returns the Instagram PK user ID.
+
+        Args:
+            username (str): Instagram username handle without `@` prefix.
+
+        Returns:
+            str: String of the unique user ID.
+        """
+        user_id = self.user_ids_cache.get(username)
+        if user_id:
+            return user_id
+
+        user_data = GetUserDataQuery().get_user_data(username)
+        user_id = user_data.get("pk")
+
+        if user_id:
+            logger.info("Caching user ID '%s' for user '%s'" % (user_id, username))
+            self.user_ids_cache[username] = user_id
+
+        return user_id
+
     def get_user_followers(self, username: str) -> Iterable[str]:
         logger.info("Fetching all followers for user '%s'" % username)
 
-        users_data = GetUserDataQuery().get_user_data(username)
-        user_id = users_data.get("pk")
+        user_id = self.get_instagram_user_id(username)
 
         if not user_id:
             logger.error("Could not get user_id from query")
@@ -104,8 +125,7 @@ class Pygram:
     def get_user_followings(self, username: str) -> Iterable[str]:
         logger.info("Fetching all followings for user '%s'" % username)
 
-        users_data = GetUserDataQuery().get_user_data(username)
-        user_id = users_data.get("pk")
+        user_id = self.get_instagram_user_id(username)
 
         if not user_id:
             logger.error("Could not get user_id from query")
@@ -115,25 +135,18 @@ class Pygram:
         return followings
 
     def follow_user_followers(
-        self, username: str, amount: int = 100, parameters: FollowParameters = None
-    ):
-        """
-        Obtains the list of followers of a specific user and follows them.
-        """
+        self,
+        username: str,
+        amount: int = 100,
+        parameters: Optional[FollowParameters] = None,
+    ) -> None:
+        """Follows all the followers of a specific user."""
 
-        logger.info(f"Obtaining {username}'s followers.")
+        raise NotImplementedError
 
-        user = UserProfilePage(username)
-        user_followers = user.get_followers(randomize=True)
-
-        handler = FollowHandler(user=self.username, parameters=parameters)
-        self.follows_count = handler.follow_users(
-            users_to_follow=user_followers, amount=amount
-        )
-
-        logger.info(f"Finished following {amount} of {username}'s followers")
-
-    def unfollow_users(self, until_datetime: Optional[datetime.datetime] = None):
+    def unfollow_users(
+        self, until_datetime: Optional[datetime.datetime] = None
+    ) -> None:
         """
         Unfollow users that this account is following.
 
@@ -143,10 +156,4 @@ class Pygram:
         :param until_datetime: Only unfollow users that were followed at this datetime and
                                before. Users followed after this time will not be unfollowed.
         """
-
-        logger.info("Starting to unfollow users...")
-
-        handler = UnfollowHandler(self.username, until_datetime)
-        self.unfollows_count = handler.unfollow_users()
-
-        logger.info(f"Unfollowed a total of {self.unfollows_count} users")
+        raise NotImplementedError
