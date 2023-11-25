@@ -81,7 +81,7 @@ class Pygram:
     def _login(self):
         """Login the user using the crendetials provided."""
 
-        get_browser().get(INSTAGRAM_HOMEPAGE_URL)
+        self.browser.get(INSTAGRAM_HOMEPAGE_URL)
 
         authenticator = AuthPage(self.username, self.password)
         authenticator.login()
