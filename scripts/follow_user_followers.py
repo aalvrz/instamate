@@ -1,29 +1,25 @@
-"""Script that follows random followers of a particular user."""
 import os
+import sys
 
 from dotenv import load_dotenv
 
-from pygram import FollowParameters, Pygram
+from pygram import Pygram
 
 
 load_dotenv()
 
-USERNAME = os.getenv("INSTAGRAM_USERNAME")
-PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
-SOURCE_USERNAME = "hondurastips"
-
 
 if __name__ == "__main__":
-    pygram = Pygram(USERNAME, PASSWORD)
+    ig_username = os.getenv("INSTAGRAM_USERNAME")
+    ig_password = os.getenv("INSTAGRAM_PASSWORD")
 
-    with pygram:
-        pygram.follow_user_followers(
-            SOURCE_USERNAME,
-            amount=100,
-            parameters=FollowParameters(
-                min_posts_count=15,
-                min_followers=100,
-                min_followings=100,
-                skip_business_accounts=True,
-            ),
-        )
+    if not ig_username or not ig_password:
+        raise ValueError("Invalid Instagram username or password")
+
+    try:
+        username: str = sys.argv[1]
+    except IndexError:
+        raise ValueError("You must provide an Instagram username to get data from")
+
+    with Pygram(ig_username, ig_password) as pygram:
+        pygram.follow_user_followers(username)

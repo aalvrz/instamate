@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Set
 import httpx
 
 
+# See: https://stackoverflow.com/questions/32407851/instagram-api-how-can-i-retrieve-the-list-of-people-a-user-is-following-on-ins
 GET_FOLLOWERS_QUERY_HASH = "c76146de99bb02f6415203be841dd25a"
 GET_FOLLOWINGS_QUERY_HASH = "d04b0a864b4b54837c0d870b0e77e076"
 

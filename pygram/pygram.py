@@ -16,7 +16,7 @@ import httpx
 from .pages.auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
-from .following import FollowParameters
+from .following import follow_users
 from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
 from .workspace import UserWorkspace
 from pygram.queries.graphql import GraphQLAPI
@@ -49,7 +49,7 @@ class Pygram:
         self.browser.implicitly_wait(5)
         self._login()
 
-        self.http_client = httpx.Client()
+        self._init_http_client()
 
         return self
 
@@ -138,11 +138,12 @@ class Pygram:
         self,
         username: str,
         amount: int = 100,
-        parameters: Optional[FollowParameters] = None,
+        # parameters: Optional[FollowParameters] = None,
     ) -> None:
         """Follows all the followers of a specific user."""
 
-        raise NotImplementedError
+        users = self.get_user_followers(username)
+        follow_users(users, amount)
 
     def unfollow_users(
         self, until_datetime: Optional[datetime.datetime] = None

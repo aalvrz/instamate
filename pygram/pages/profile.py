@@ -51,20 +51,11 @@ class UserProfilePage(BaseInstagramPage):
         self.username = username.strip().lower()
         self.link = f"{INSTAGRAM_HOMEPAGE_URL}/{self.username}/"
 
-    def get_following_status(self, current_username: str) -> FollowingStatus:
-        """
-        Return the following status for this user.
-
-        :param current_username: Username of the current session's user.
+    def get_following_status(self) -> FollowingStatus:
+        """Return the following status between this profile's user and the current session's user.
 
         :returns: A FollowingStatus enum value representing the following status.
         """
-
-        if self.username == current_username:
-            raise InstagramUserOperationError("Can't get following status of same user")
-
-        get_browser().get(self.link)
-
         try:
             follow_button_elem = WebDriverWait(get_browser(), 10).until(
                 EC.presence_of_element_located((By.XPATH, FOLLOW_BUTTON_XPATH))
@@ -72,9 +63,9 @@ class UserProfilePage(BaseInstagramPage):
         except TimeoutException:
             raise
 
-        following_status = follow_button_elem.text
-
-        return FollowingStatus.get_following_status_from_string(following_status)
+        status_txt = follow_button_elem.text
+        following_status = FollowingStatus(status_txt)
+        return following_status
 
     @property
     def is_private(self):
@@ -210,18 +201,17 @@ class UserProfilePage(BaseInstagramPage):
 
         return str(user_id)
 
-    def follow(self):
+    def follow(self) -> None:
         """Follows this user from their profile page."""
 
-        get_browser().get(self.link)
-        time.sleep(5)
-
-        follow_button_xp = get_browser().find_element_by_xpath(FOLLOW_BUTTON_XPATH)
+        follow_button_xp = self.browser.find_element(By.XPATH, FOLLOW_BUTTON_XPATH)
 
         try:
             follow_button_xp.click()
-        except:
-            logger.error(f"Error trying to follow user {self}")
+        except WebDriverException as ex:
+            logger.error("Error trying to follow user '%s': %s" % (self.username, ex))
+        else:
+            logger.info("Followed user '%s'" % self.username)
 
     def unfollow(self):
         """

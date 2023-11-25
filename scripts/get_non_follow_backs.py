@@ -27,7 +27,7 @@ if __name__ == "__main__":
     except IndexError:
         raise ValueError("You must provide an Instagram username to get data from")
 
-    with Pygram(ig_password, ig_password) as pygram:
+    with Pygram(ig_username, ig_password) as pygram:
         followers = pygram.get_user_followers(username)
         followings = pygram.get_user_followings(username)
 
