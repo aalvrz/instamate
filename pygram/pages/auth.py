@@ -1,6 +1,5 @@
 import logging
 import time
-from typing import Optional
 
 from selenium.common.exceptions import (
     MoveTargetOutOfBoundsException,
@@ -15,8 +14,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from pygram.browser import get_browser
+from pygram.cookies import save_user_cookies
 from pygram.exceptions import PygramException
-from pygram.workspace import UserWorkspace, CookiesFileNotFoundError
 
 
 logger = logging.getLogger(__name__)
@@ -29,28 +28,16 @@ class AuthenticationError(PygramException):
 class AuthPage:
     """Allows logging-in using Instagram's log-in screen."""
 
-    def __init__(self, username: str, password: str, use_cookie: Optional[bool] = True):
+    def __init__(self, username: str, password: str):
         self.username = username
         self.password = password
-        self.use_cookie = use_cookie
-
-        self._user_workspace = UserWorkspace(self.username)
-        self._cookie_loaded = False
 
     def login(self) -> None:
-        if self.use_cookie:
-            try:
-                self._login_using_cookie()
-            except CookiesFileNotFoundError:
-                logger.warning("Could not login using auth cookie")
-
         if self.is_user_logged_in():
             return
 
         login_element = self._find_create_account_or_login_div()
         self._click_login_element(login_element)
-
-        # TODO: Record activity
 
         self._wait_for_login_page()
 
@@ -69,16 +56,7 @@ class AuthPage:
         if not self.is_user_logged_in():
             raise AuthenticationError
 
-        if self.use_cookie:
-            self._store_user_cookies()
-
-    def _login_using_cookie(self):
-        # We will first try to log the user in using a cookie. If the login is
-        # successful, the user should show as logged in after refreshing the
-        # page.
-        self._load_user_cookies()
-        get_browser().refresh()
-        time.sleep(2)
+        save_user_cookies(self.username, get_browser().get_cookies())
 
     def _find_create_account_or_login_div(self):
         """
@@ -183,19 +161,6 @@ class AuthPage:
             ActionChains(get_browser()).move_to_element(
                 save_login_info_btn
             ).click().perform()
-
-    def _load_user_cookies(self):
-        """Load all user cookies in the local workspace that already contain session data."""
-
-        for cookie in self._user_workspace.get_cookies():
-            get_browser().add_cookie(cookie)
-
-        self._cookie_loaded = True
-
-    def _store_user_cookies(self):
-        """Create session cookies for user and store it in the user's workspace."""
-
-        self._user_workspace.store_cookies(get_browser().get_cookies())
 
     def is_user_logged_in(self) -> bool:
         # Check using activity counts

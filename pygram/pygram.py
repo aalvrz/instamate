@@ -13,12 +13,12 @@ from typing import Dict, Iterable, Optional
 
 import httpx
 
+from .cookies import load_user_cookies
 from .pages.auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .following import follow_users
 from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
-from .workspace import UserWorkspace
 from pygram.queries.graphql import GraphQLAPI
 from pygram.queries.user import GetUserDataQuery
 
@@ -41,12 +41,15 @@ class Pygram:
         self._setup_logger()
 
         self.browser = get_browser()
-        self.workspace = UserWorkspace(self.username)
 
         self.user_ids_cache: Dict[str, str] = {}
 
     def __enter__(self):
         self.browser.implicitly_wait(5)
+        self.browser.get(INSTAGRAM_HOMEPAGE_URL)
+
+        self._load_cookies()
+
         self._login()
 
         self._init_http_client()
@@ -78,10 +81,17 @@ class Pygram:
         handler.addFilter(PygramLoggerContextFilter(self.username))
         logger.addHandler(handler)
 
+    def _load_cookies(self) -> None:
+        """Attempts to load any local saved cookies for the current session user."""
+
+        cookies = load_user_cookies(self.username)
+        for cookie in cookies:
+            self.browser.add_cookie(cookie)
+
+        self.browser.refresh()
+
     def _login(self):
         """Login the user using the crendetials provided."""
-
-        self.browser.get(INSTAGRAM_HOMEPAGE_URL)
 
         authenticator = AuthPage(self.username, self.password)
         authenticator.login()
