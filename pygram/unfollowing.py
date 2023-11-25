@@ -9,7 +9,7 @@ from .following import (
     FOLLOW_COUNT_PAUSE_THRESHOLD,
     FOLLOW_BREAK_WAIT_TIME,
 )
-from .users import InstagramUser, UnfollowUserError
+from .pages.profile import UserProfilePage, UnfollowUserError
 
 
 logger = logging.getLogger("pygram." + __name__)
@@ -40,7 +40,7 @@ class UnfollowHandler:
         users_to_unfollow = self._get_users_to_unfollow()
 
         for user in users_to_unfollow:
-            ig_user = InstagramUser(user)
+            ig_user = UserProfilePage(user)
 
             try:
                 ig_user.unfollow()
@@ -75,7 +75,7 @@ class UnfollowHandler:
         )
 
     def _get_users_to_unfollow(self) -> Set[str]:
-        pygram_user = InstagramUser(self.user)
+        pygram_user = UserProfilePage(self.user)
         followers = set(pygram_user.get_followers())
         followings = set(pygram_user.get_followings())
 

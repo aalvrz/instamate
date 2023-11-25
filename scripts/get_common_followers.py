@@ -3,7 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-from pygram.users import InstagramUser
+from pygram.pages.profile import UserProfilePage
 from pygram import Pygram
 
 
@@ -17,10 +17,10 @@ if __name__ == "__main__":
     pygram = Pygram(USERNAME, PASSWORD)
 
     with pygram:
-        u1 = InstagramUser("someuser1")
+        u1 = UserProfilePage("someuser1")
         u1_followers = u1.get_followers()
 
-        u2 = InstagramUser("someuser2")
+        u2 = UserProfilePage("someuser2")
         u2_followers = u2.get_followers()
 
         print("Common Followers:")

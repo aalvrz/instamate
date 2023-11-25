@@ -10,27 +10,26 @@ import os
 from dotenv import load_dotenv
 
 from pygram import Pygram
-from pygram.users import InstagramUser
 
 
 load_dotenv()
 
-USERNAME = os.getenv("INSTAGRAM_USERNAME")
-PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
-
 
 if __name__ == "__main__":
+    ig_username = os.getenv("INSTAGRAM_USERNAME")
+    ig_password = os.getenv("INSTAGRAM_PASSWORD")
+
+    if not ig_username or not ig_password:
+        raise ValueError("Invalid Instagram username or password")
+
     try:
         username: str = sys.argv[1]
     except IndexError:
-        raise ValueError("You must provide an Instagram username")
+        raise ValueError("You must provide an Instagram username to get data from")
 
-    pygram = Pygram(USERNAME, PASSWORD)
+    with Pygram(ig_password, ig_password) as pygram:
+        followers = pygram.get_user_followers(username)
+        followings = pygram.get_user_followings(username)
 
-    with pygram:
-        user = InstagramUser(username)
-        followers = set(user.get_followers())
-        followings = set(user.get_followings())
-
-        result = followings - followers
-        print(result)
+    results = followings - followers
+    print(results)

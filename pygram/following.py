@@ -6,7 +6,7 @@ from typing import Set
 
 from .constants import FollowingStatus
 from .db import get_database
-from .users import InstagramUser, InstagramUserOperationError
+from .pages.profile import UserProfilePage, InstagramUserOperationError
 
 
 FOLLOW_USER_WAIT_TIME = 60
@@ -87,7 +87,7 @@ class FollowHandler:
             if username in self._follow_history or username == self.user:
                 continue
 
-            ig_user = InstagramUser(username)
+            ig_user = UserProfilePage(username)
 
             if not self._user_satisfies_parameters(ig_user):
                 logger.info(f"User {ig_user} does not pass parameters. Skipping.")
@@ -128,7 +128,7 @@ class FollowHandler:
         )
         return {i.username for i in follow_history}
 
-    def _user_satisfies_parameters(self, ig_user: InstagramUser) -> bool:
+    def _user_satisfies_parameters(self, ig_user: UserProfilePage) -> bool:
         if self.parameters:
             if self.parameters.skip_business_accounts:
                 if ig_user.is_business_account:

@@ -2,7 +2,7 @@
 import logging
 import time
 from functools import lru_cache
-from typing import Iterator, Tuple
+from typing import Optional, Tuple
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -16,8 +16,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from ..browser import get_browser
 from ..constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
 from ..xpath import FOLLOW_BUTTON_XPATH
-from .followers import UserFollowers
-from .followings import UserFollowings
+from .base import BaseInstagramPage
 
 
 logger = logging.getLogger("pygram." + __name__)
@@ -33,18 +32,24 @@ class UnfollowUserError(InstagramUserOperationError):
     """Error when trying to unfollow Instagram user."""
 
 
-class InstagramUser:
+class UserProfilePage(BaseInstagramPage):
+    """Represents the profile screen of a specific Instagram user."""
+
     # Base query for obtaining certain user data
     base_query = (
         "return window.__additionalData[Object.keys(window.__additionalData)[0]].data."
     )
 
     def __init__(self, username: str):
-        self.username = username.strip().lower()
-        self.user_profile_link = f"{INSTAGRAM_HOMEPAGE_URL}/{self.username}/"
+        """Initialize a new user profile page for a specific user.
 
-    def __str__(self):
-        return self.username
+        Args:
+            username (str): Instagram username without `@` prefix.
+        """
+        super().__init__()
+
+        self.username = username.strip().lower()
+        self.link = f"{INSTAGRAM_HOMEPAGE_URL}/{self.username}/"
 
     def get_following_status(self, current_username: str) -> FollowingStatus:
         """
@@ -58,7 +63,7 @@ class InstagramUser:
         if self.username == current_username:
             raise InstagramUserOperationError("Can't get following status of same user")
 
-        get_browser().get(self.user_profile_link)
+        get_browser().get(self.link)
 
         try:
             follow_button_elem = WebDriverWait(get_browser(), 10).until(
@@ -98,7 +103,7 @@ class InstagramUser:
     def is_business_account(self) -> bool:
         is_business_account = False
 
-        get_browser().get(self.user_profile_link)
+        get_browser().get(self.link)
 
         query = "graphql.user.is_business_account"
         try:
@@ -118,112 +123,97 @@ class InstagramUser:
         return is_business_account
 
     @lru_cache(maxsize=128)
-    def get_followers_count(self) -> int:
+    def get_followers_count(self) -> Optional[int]:
         """Navigates to the user's profile and returns the number of followers of this user."""
 
-        get_browser().get(self.user_profile_link)
+        followers_count: Optional[int] = None
 
         try:
             followers_count = get_browser().execute_script(
                 "return window._sharedData.entry_data."
                 "ProfilePage[0].graphql.user.edge_followed_by.count"
             )
-        except WebDriverException:
-            raise InstagramUserOperationError(
-                "Failed to get {self.username}'s follower count."
+        except WebDriverException as ex:
+            logger.warning(
+                "Could not get %s's followers count: %s" % (self.username, ex)
             )
 
-        return int(followers_count)
+        return followers_count
 
-    def get_followers(self, randomize: bool = True) -> Iterator[str]:
-        """
-        Get list of followers.
-
-        Individual usernames are yielded per iteration of this method.
-
-        :param randomize: If list of followers should be returned in random order.
-        """
-        user_id = self._get_user_id()
-        return UserFollowers(user_id, randomize)
-
-    def get_followings(self) -> Iterator[str]:
-        user_id = self._get_user_id()
-        return UserFollowings(user_id, randomize=False)
-
-    def get_all_activity_counts(self) -> Tuple[int, int, int]:
+    def get_all_activity_counts(
+        self
+    ) -> Tuple[Optional[int], Optional[int], Optional[int]]:
         """
         Returns 3 item tuple containing counts for this user's total posts, followers, and
         followings.
         """
-
-        time.sleep(6)
-        get_browser().get(self.user_profile_link)
-
         followings_count = self.get_followings_count()
+        time.sleep(3)
+
         total_posts_count = self.get_total_posts_count()
+        time.sleep(3)
+
         followers_count = self.get_followers_count()
+        time.sleep(3)
 
         return (total_posts_count, followers_count, followings_count)
 
     @lru_cache(maxsize=128)
-    def get_followings_count(self) -> int:
+    def get_followings_count(self) -> Optional[int]:
         """Navigates to the user's profile and returns the number of followings of this user."""
 
-        time.sleep(3)
-        get_browser().get(self.user_profile_link)
+        following_count: Optional[int] = None
 
         try:
             following_count = get_browser().execute_script(
                 "return window._sharedData.entry_data."
                 "ProfilePage[0].graphql.user.edge_follow.count"
             )
-        except WebDriverException as ex:
-            logger.exception(ex)
-            raise InstagramUserOperationError(
-                "Failed to get {self.username}'s following count"
+
+            if following_count:
+                following_count = int(following_count)
+        except (WebDriverException, TypeError) as ex:
+            logger.warning(
+                "Could not obtain %s's followings count: %s" % (self.username, ex)
             )
 
-        return int(following_count)
+        return following_count
 
-    def get_total_posts_count(self) -> int:
+    def get_total_posts_count(self) -> Optional[int]:
         """Navigates to the user's profile and returns the number of posts of this user."""
 
-        data = None
+        posts_count: Optional[int] = None
         query = "graphql.user.edge_owner_to_timeline_media.count"
-
-        get_browser().get(self.user_profile_link)
 
         try:
             base_query = "return window.__additionalData[Object.keys(window.__additionalData)[0]].data."
-            data = get_browser().execute_script(base_query + query)
-        except WebDriverException:
-            get_browser().execute_script("location.reload()")
+            posts_count = self.browser.execute_script(base_query + query)
+        except WebDriverException as ex:
+            logger.warning(
+                "Could not get %s's total posts count: %s" % (self.username, ex)
+            )
 
-            base_query = "return window._sharedData.entry_data.ProfilePage[0]."
-            data = get_browser().execute_script(base_query + query)
-
-        return data
+        return posts_count
 
     @lru_cache(maxsize=128)
-    def _get_user_id(self) -> int:
-        get_browser().get(self.user_profile_link)
-        time.sleep(1000)
+    def _get_user_id(self) -> str:
+        """Attemps to obtain the user ID of the current profile page."""
 
-        # try:
-        #     user_id = get_browser().execute_script(
-        #         "return window.__additionalData[Object.keys(window.__additionalData)[0]].data.graphql.user.id"
-        #     )
-        # except WebDriverException:
-        #     user_id = get_browser().execute_script(
-        #         "return window._sharedData.entry_data.ProfilePage[0].graphql.user.id"
-        #     )
+        try:
+            user_id = self.browser.execute_script(
+                "return window.__additionalData[Object.keys(window.__additionalData)[0]].data.graphql.user.id"
+            )
+        except WebDriverException:
+            user_id = self.browser.execute_script(
+                "return window._sharedData.entry_data.ProfilePage[0].graphql.user.id"
+            )
 
-        # return str(user_id)
+        return str(user_id)
 
     def follow(self):
         """Follows this user from their profile page."""
 
-        get_browser().get(self.user_profile_link)
+        get_browser().get(self.link)
         time.sleep(5)
 
         follow_button_xp = get_browser().find_element_by_xpath(FOLLOW_BUTTON_XPATH)
@@ -240,7 +230,7 @@ class InstagramUser:
         :raises UnfollowUserError: If user can't be unfollowed.
         """
 
-        get_browser().get(self.user_profile_link)
+        get_browser().get(self.link)
         time.sleep(5)
 
         try:
@@ -265,23 +255,5 @@ class InstagramUser:
         )
         unfollow_button.click()
 
-
-def get_additional_data(browser):
-    """
-    Get additional data object from page source
-    Idea and Code by alokkumarsbg
-    :param browser: The selenium webdriver instance
-    :return additional_data: Json data from window.__additionalData extracted from page source
-    """
-    import json
-    import re
-    import BeautifulSoup
-
-    additional_data = None
-    soup = BeautifulSoup(browser.page_source, "html.parser")
-    for text in soup(text=re.compile(r"window.__additionalDataLoaded")):
-        if re.search("^window.__additionalDataLoaded", text):
-            additional_data = json.loads(re.search("{.*}", text).group())
-            break
-
-    return additional_data
+    def __str__(self) -> str:
+        return self.username

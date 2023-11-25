@@ -9,7 +9,10 @@ Commands:
 """
 import datetime
 import logging
-from typing import Dict
+from typing import Iterable
+from pygram.queries.graphql import GraphQLAPI
+
+from pygram.queries.user import GetUserDataQuery
 
 from .auth import AuthPage
 from .browser import get_browser
@@ -18,8 +21,7 @@ from .db import get_database
 from .following import FollowHandler, FollowParameters
 from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
 from .unfollowing import UnfollowHandler
-from .sms import SMSClient
-from .users import InstagramUser
+from .pages.profile import UserProfilePage
 from .workspace import UserWorkspace
 
 
@@ -45,18 +47,13 @@ class Pygram:
 
     def __enter__(self):
         get_browser().implicitly_wait(5)
-
         self._login()
-        self._record_account_progress()
 
         return self
 
     def __exit__(self, type, value, traceback):
         get_browser().quit()
         self.database.close()
-
-        if not value:
-            self._record_session_activity()
 
     def _setup_logger(self):
         logger.setLevel(logging.DEBUG)
@@ -79,47 +76,31 @@ class Pygram:
 
         logger.info("Logged in successfully.")
 
-    def _record_account_progress(self):
-        logger.info("Saving account progress...")
+    def get_user_followers(self, username: str) -> Iterable[str]:
+        logger.info("Fetching all followers for user '%s'" % username)
 
-        user = InstagramUser(self.username)
+        users_data = GetUserDataQuery().get_user_data(username)
+        user_id = users_data.get("pk")
 
-        try:
-            (
-                posts_count,
-                followers_count,
-                following_count,
-            ) = user.get_all_activity_counts()
-        except Exception as ex:
-            logger.error(
-                "Could not obtain and record %s's activity counts" % user.username
-            )
-        else:
-            logger.info(
-                "Posts: %d | Followers: %d | Following: %d"
-                % (posts_count, followers_count, following_count)
-            )
+        if not user_id:
+            logger.error("Could not get user_id from query")
+            return []
 
-            self.database.record_account_progress(
-                username=self.username,
-                followers_count=followers_count,
-                following_count=following_count,
-                total_posts_count=posts_count,
-            )
+        followers = GraphQLAPI().get_followers(user_id)
+        return followers
 
-    def _record_session_activity(self):
-        self.database.record_activity(
-            username=self.username,
-            follows_count=self.follows_count,
-            unfollows_count=self.unfollows_count,
-        )
+    def get_user_followings(self, username: str) -> Iterable[str]:
+        logger.info("Fetching all followings for user '%s'" % username)
 
-        if self._sms_client:
-            self._sms_client.send_session_report_sms(follows_count=self.follows_count)
+        users_data = GetUserDataQuery().get_user_data(username)
+        user_id = users_data.get("pk")
 
-    def get_user_followers(self, username: str) -> int:
-        user = InstagramUser(username)
-        return user.get_followers()
+        if not user_id:
+            logger.error("Could not get user_id from query")
+            return []
+
+        followings = GraphQLAPI().get_followings(user_id)
+        return followings
 
     def follow_user_followers(
         self, username: str, amount: int = 100, parameters: FollowParameters = None
@@ -130,7 +111,7 @@ class Pygram:
 
         logger.info(f"Obtaining {username}'s followers.")
 
-        user = InstagramUser(username)
+        user = UserProfilePage(username)
         user_followers = user.get_followers(randomize=True)
 
         handler = FollowHandler(user=self.username, parameters=parameters)
