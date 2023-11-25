@@ -13,7 +13,7 @@ from typing import Iterable, Optional
 
 import httpx
 
-from .auth import AuthPage
+from .pages.auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .following import FollowHandler, FollowParameters

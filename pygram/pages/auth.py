@@ -14,9 +14,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from .browser import get_browser
-from .exceptions import PygramException
-from .workspace import UserWorkspace, CookiesFileNotFoundError
+from pygram.browser import get_browser
+from pygram.exceptions import PygramException
+from pygram.workspace import UserWorkspace, CookiesFileNotFoundError
 
 
 logger = logging.getLogger(__name__)
