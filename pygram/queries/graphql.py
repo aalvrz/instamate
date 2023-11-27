@@ -41,7 +41,7 @@ class GraphQLAPI:
     def _get_users(
         self, user_id: str, key: str, query_hash: str, randomize: Optional[bool] = True
     ) -> Set[str]:
-        followers: List[str] = []
+        users: List[str] = []
 
         params = {
             "id": user_id,
@@ -58,7 +58,7 @@ class GraphQLAPI:
             users_data = self._get_page_data(params, key, query_hash)
             users_page: List[Dict[str, Any]] = users_data["edges"]
             users_list: List[str] = [user["node"]["username"] for user in users_page]
-            followers.extend(users_list)
+            users.extend(users_list)
 
             has_next_page = users_data["page_info"]["has_next_page"]
 
@@ -69,9 +69,9 @@ class GraphQLAPI:
             params["after"] = end_cursor
 
         if randomize:
-            random.shuffle(followers)
+            random.shuffle(users)
 
-        return set(followers)
+        return set(users)
 
     def _get_page_data(
         self, params: Dict[str, Any], key: str, query_hash: str
