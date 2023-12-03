@@ -172,7 +172,7 @@ class AuthPage:
             )
         except WebDriverException:
             try:
-                get_browser().excecute_script("location.reload()")
+                get_browser().refresh()
                 # TODO: Update activity
                 activity_counts = get_browser().execute_script(
                     "return window._sharedData.activity_counts"
