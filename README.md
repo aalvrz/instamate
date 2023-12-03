@@ -8,6 +8,15 @@ pip install pygram
 
 You will need to install a web driver such as [Geckodriver](https://github.com/mozilla/geckodriver/releases). Simply download a release binary and place it in your file system at `/usr/local/bin`.
 
+# Configuration
+
+Create a `.env` file with your instagram authentication credentials:
+
+```
+INSTAGRAM_USERNAME="myuser"
+INSTAGRAM_PASSWORD="foobar"
+```
+
 # Basic Usage
 
 Using Pygram is incredibly simple:
