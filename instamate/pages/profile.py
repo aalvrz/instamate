@@ -2,7 +2,7 @@
 import logging
 import time
 from functools import lru_cache
-from typing import Optional, Tuple
+from typing import Tuple
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -13,7 +13,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from ..browser import get_browser
 from ..constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
 from ..xpath import FOLLOW_BUTTON_XPATH
 from .base import BaseInstagramPage
@@ -40,7 +39,7 @@ class UserProfilePage(BaseInstagramPage):
         "return window.__additionalData[Object.keys(window.__additionalData)[0]].data."
     )
 
-    def __init__(self, username: str):
+    def __init__(self, username: str) -> None:
         """Initialize a new user profile page for a specific user.
 
         Args:
@@ -57,7 +56,7 @@ class UserProfilePage(BaseInstagramPage):
         :returns: A FollowingStatus enum value representing the following status.
         """
         try:
-            follow_button_elem = WebDriverWait(get_browser(), 10).until(
+            follow_button_elem = WebDriverWait(self.browser, 10).until(
                 EC.presence_of_element_located((By.XPATH, FOLLOW_BUTTON_XPATH))
             )
         except TimeoutException:
@@ -68,20 +67,20 @@ class UserProfilePage(BaseInstagramPage):
         return following_status
 
     @property
-    def is_private(self):
+    def is_private(self) -> bool | None:
         """Check if this user has a private profile."""
 
-        is_private = None
+        is_private: bool | None = None
         try:
-            is_private = get_browser().execute_script(
+            is_private = self.browser.execute_script(
                 "return window.__additionalData[Object.keys(window.__additionalData)[0]]."
                 "data.graphql.user.is_private"
             )
         except WebDriverException:
             try:
-                get_browser().execute_script("location.reload()")
+                self.browser.execute_script("location.reload()")
 
-                is_private = get_browser().execute_script(
+                is_private = self.browser.execute_script(
                     "return window._sharedData.entry_data."
                     "ProfilePage[0].graphql.user.is_private"
                 )
@@ -94,16 +93,16 @@ class UserProfilePage(BaseInstagramPage):
     def is_business_account(self) -> bool:
         is_business_account = False
 
-        get_browser().get(self.link)
+        self.go()
 
         query = "graphql.user.is_business_account"
         try:
-            is_business_account = get_browser().execute_script(self.base_query + query)
+            is_business_account = self.browser.execute_script(self.base_query + query)
         except WebDriverException:
             try:
-                get_browser().execute_script("location.reload()")
+                self.browser.execute_script("location.reload()")
 
-                is_business_account = get_browser().execute_script(
+                is_business_account = self.browser.execute_script(
                     "return window._sharedData.entry_data.ProfilePage[0]." + query
                 )
             except WebDriverException as ex:
@@ -114,13 +113,13 @@ class UserProfilePage(BaseInstagramPage):
         return is_business_account
 
     @lru_cache(maxsize=128)
-    def get_followers_count(self) -> Optional[int]:
+    def get_followers_count(self) -> int | None:
         """Navigates to the user's profile and returns the number of followers of this user."""
 
-        followers_count: Optional[int] = None
+        followers_count: int | None
 
         try:
-            followers_count = get_browser().execute_script(
+            followers_count = self.browser.execute_script(
                 "return window._sharedData.entry_data."
                 "ProfilePage[0].graphql.user.edge_followed_by.count"
             )
@@ -129,9 +128,7 @@ class UserProfilePage(BaseInstagramPage):
 
         return followers_count
 
-    def get_all_activity_counts(
-        self
-    ) -> Tuple[Optional[int], Optional[int], Optional[int]]:
+    def get_all_activity_counts(self) -> Tuple[int | None, int | None, int | None]:
         """
         Returns 3 item tuple containing counts for this user's total posts, followers, and
         followings.
@@ -148,13 +145,13 @@ class UserProfilePage(BaseInstagramPage):
         return (total_posts_count, followers_count, followings_count)
 
     @lru_cache(maxsize=128)
-    def get_followings_count(self) -> Optional[int]:
+    def get_followings_count(self) -> int | None:
         """Navigates to the user's profile and returns the number of followings of this user."""
 
-        following_count: Optional[int] = None
+        following_count: int | None
 
         try:
-            following_count = get_browser().execute_script(
+            following_count = self.browser.execute_script(
                 "return window._sharedData.entry_data."
                 "ProfilePage[0].graphql.user.edge_follow.count"
             )
@@ -168,10 +165,10 @@ class UserProfilePage(BaseInstagramPage):
 
         return following_count
 
-    def get_total_posts_count(self) -> Optional[int]:
+    def get_total_posts_count(self) -> int | None:
         """Navigates to the user's profile and returns the number of posts of this user."""
 
-        posts_count: Optional[int] = None
+        posts_count: int | None
         query = "graphql.user.edge_owner_to_timeline_media.count"
 
         try:
@@ -211,21 +208,19 @@ class UserProfilePage(BaseInstagramPage):
         else:
             logger.info("Followed user '%s'" % self.username)
 
-    def unfollow(self):
+    def unfollow(self) -> None:
         """
         Navigate to this user's profile and unfollow.
 
         :raises UnfollowUserError: If user can't be unfollowed.
         """
-
-        get_browser().get(self.link)
-        time.sleep(5)
+        self.go()
 
         try:
-            button = get_browser().find_element_by_xpath("//button[text() = 'Following']")
+            button = self.browser.find_element_by_xpath("//button[text() = 'Following']")
         except NoSuchElementException:
             try:
-                button = get_browser().find_element_by_xpath(
+                button = self.browser.find_element_by_xpath(
                     "//button/div/span[contains(@aria-label, 'Following')]"
                 )
             except NoSuchElementException:
@@ -236,7 +231,7 @@ class UserProfilePage(BaseInstagramPage):
         # Confirm unfollow
         time.sleep(2)
 
-        unfollow_button = get_browser().find_element_by_xpath(
+        unfollow_button = self.browser.find_element_by_xpath(
             "//button[text()='Unfollow']"
         )
         unfollow_button.click()

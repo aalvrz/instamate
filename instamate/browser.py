@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.remote.webdriver import WebDriver
 
 
 FIREFOX_USER_AGENT = (
@@ -7,11 +8,12 @@ FIREFOX_USER_AGENT = (
 )
 
 _CURRENT_BROWSER = None
+
 DEFAULT_WINDOW_WIDTH = 375
 DEFAULT_WINDOW_HEIGHT = 812
 
 
-def get_browser():
+def get_browser() -> WebDriver:
     global _CURRENT_BROWSER
 
     if _CURRENT_BROWSER is None:
@@ -26,6 +28,5 @@ def get_browser():
 
         _CURRENT_BROWSER = webdriver.Firefox(options=options)
         _CURRENT_BROWSER.set_window_size(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
-        return _CURRENT_BROWSER
 
     return _CURRENT_BROWSER

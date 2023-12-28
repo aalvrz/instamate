@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 def follow_users(users: Iterable[str], amount: int) -> None:
+    """Navigates to the profile page of each user in a list of users and attempts to follow them."""
+
     if amount <= 0:
         raise ValueError("Invalid follow amount cap")
 

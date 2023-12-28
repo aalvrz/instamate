@@ -27,7 +27,7 @@ class AuthenticationError(InstamateException):
 class AuthPage:
     """Allows logging-in using Instagram's log-in screen."""
 
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str, password: str) -> None:
         self.username = username
         self.password = password
 
@@ -73,7 +73,7 @@ class AuthPage:
 
         return login_element
 
-    def _click_login_element(self, login_element):
+    def _click_login_element(self, login_element) -> None:
         """Clicks login element so that login is possible."""
 
         if login_element is not None:
@@ -87,7 +87,7 @@ class AuthPage:
             except MoveTargetOutOfBoundsException:
                 login_element.click()
 
-    def _wait_for_login_page(self, seconds=10):
+    def _wait_for_login_page(self, seconds=10) -> None:
         try:
             WebDriverWait(get_browser(), seconds).until(EC.title_contains("Instagram"))
         except TimeoutException:
@@ -112,7 +112,7 @@ class AuthPage:
 
         return username_element
 
-    def _enter_username(self, username_input_element):
+    def _enter_username(self, username_input_element) -> None:
         """Enters the provided username value in the input element."""
         (
             ActionChains(get_browser())
@@ -128,7 +128,7 @@ class AuthPage:
         )
         return password_element
 
-    def _enter_password(self, password_input_element):
+    def _enter_password(self, password_input_element) -> None:
         """Enters the provided password value in the password input element."""
 
         (
@@ -139,7 +139,7 @@ class AuthPage:
             .perform()
         )
 
-    def _press_login_button(self, password_input_element):
+    def _press_login_button(self, password_input_element) -> None:
         (
             ActionChains(get_browser())
             .move_to_element(password_input_element)
