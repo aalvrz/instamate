@@ -5,7 +5,6 @@ from selenium.common.exceptions import (
     MoveTargetOutOfBoundsException,
     NoSuchElementException,
     TimeoutException,
-    WebDriverException,
 )
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
@@ -163,37 +162,12 @@ class AuthPage:
             ).click().perform()
 
     def is_user_logged_in(self) -> bool:
-        # Check using activity counts
-        # If user is not logged in, JavaScript will return null for activity
-        # counts.
+        # Use the "Your Story" element to determine if user is already logged in
         try:
-            activity_counts = get_browser().execute_script(
-                "return window._sharedData.activity_counts"
-            )
-        except WebDriverException:
-            try:
-                get_browser().refresh()
-                # TODO: Update activity
-                activity_counts = get_browser().execute_script(
-                    "return window._sharedData.activity_counts"
-                )
-            except WebDriverException:
-                activity_counts = None
+            element = get_browser().find_element(By.XPATH, "//div[text()='Your story']")
+            if element:
+                return True
+        except NoSuchElementException:
+            pass
 
-        try:
-            activity_counts_new = get_browser().execute_script(
-                "return window._sharedData.config.viewer"
-            )
-        except WebDriverException:
-            try:
-                get_browser().refresh()
-                activity_counts_new = get_browser().execute_script(
-                    "return window._sharedData.config.viewer"
-                )
-            except WebDriverException:
-                activity_counts_new = None
-
-        if activity_counts is None and activity_counts_new is None:
-            return False
-
-        return True
+        return False
