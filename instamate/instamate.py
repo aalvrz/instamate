@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Dict, Iterable, Optional
+from typing import Dict, Iterable
 
 import httpx
 
@@ -92,7 +92,7 @@ class Instamate:
 
         logger.info("Logged in successfully.")
 
-    def get_instagram_user_id(self, username: str) -> Optional[str]:
+    def get_instagram_user_id(self, username: str) -> str | None:
         """Returns the Instagram PK user ID.
 
         Args:
@@ -151,7 +151,7 @@ class Instamate:
         users = self.get_user_followers(username)
         follow_users(users, amount)
 
-    def unfollow_users(self, until_datetime: Optional[datetime.datetime] = None) -> None:
+    def unfollow_users(self, until_datetime: datetime.datetime | None = None) -> None:
         """
         Unfollow users that this account is following.
 
