@@ -1,6 +1,6 @@
 -r requirements.txt
 
-mypy==1.7.1
+mypy==1.8.0
 mypy-extensions==1.0.0
 pytest==5.4.1
 ruff==0.1.6
