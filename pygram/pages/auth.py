@@ -33,6 +33,7 @@ class AuthPage:
 
     def login(self) -> None:
         if self.is_user_logged_in():
+            logger.info("User is already logged in. Skipping authentication.")
             return
 
         login_element = self._find_create_account_or_login_div()
