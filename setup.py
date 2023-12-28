@@ -2,6 +2,6 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name="pygram",
+    name="instamate",
     packages=find_packages(),
 )

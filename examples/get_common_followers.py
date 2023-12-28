@@ -3,8 +3,8 @@ import os
 
 from dotenv import load_dotenv
 
-from pygram.pages.profile import UserProfilePage
-from pygram import Pygram
+from instamate.pages.profile import UserProfilePage
+from instamate import Instamate
 
 
 load_dotenv()
@@ -14,9 +14,9 @@ PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
 
 
 if __name__ == "__main__":
-    pygram = Pygram(USERNAME, PASSWORD)
+    instamate = Instamate(USERNAME, PASSWORD)
 
-    with pygram:
+    with instamate:
         u1 = UserProfilePage("someuser1")
         u1_followers = u1.get_followers()
 

@@ -12,14 +12,14 @@ from .following import (
 from .pages.profile import UserProfilePage, UnfollowUserError
 
 
-logger = logging.getLogger("pygram." + __name__)
+logger = logging.getLogger("instamate." + __name__)
 
 
 class UnfollowHandler:
     """
     Handler for unfollowing Instagram users.
 
-    Only users that have been followed through Pygram, and that DON'T follow back this account
+    Only users that have been followed through Instamate, and that DON'T follow back this account
     will be unfollowed.
     """
 
@@ -33,7 +33,7 @@ class UnfollowHandler:
         """Unfollow a list of users and return total number of unfollowed users."""
 
         if len(self._interactions) == 0:
-            logger.info("No Pygram followed users to unfollow. Quitting.")
+            logger.info("No Instamate followed users to unfollow. Quitting.")
             return
 
         unfollows_count = 0
@@ -75,9 +75,9 @@ class UnfollowHandler:
         )
 
     def _get_users_to_unfollow(self) -> Set[str]:
-        pygram_user = UserProfilePage(self.user)
-        followers = set(pygram_user.get_followers())
-        followings = set(pygram_user.get_followings())
+        instamate_user = UserProfilePage(self.user)
+        followers = set(instamate_user.get_followers())
+        followings = set(instamate_user.get_followings())
 
         # Only keep users that don't follow back and that we are still following
         users_to_unfollow = {

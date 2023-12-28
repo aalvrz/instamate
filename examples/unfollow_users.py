@@ -4,7 +4,7 @@ import os
 
 from dotenv import load_dotenv
 
-from pygram import Pygram
+from instamate import Instamate
 
 
 load_dotenv()
@@ -14,8 +14,6 @@ PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
 
 
 if __name__ == "__main__":
-    pygram = Pygram(USERNAME, PASSWORD)
-
-    with pygram:
+    with Instamate(USERNAME, PASSWORD) as instamate:
         five_days_ago = datetime.datetime.now() - datetime.timedelta(days=5)
-        pygram.unfollow_users()
+        instamate.unfollow_users()

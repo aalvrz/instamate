@@ -1,12 +1,3 @@
-"""
-Pygram - The Python bot for Instagram
-
-
-Commands:
-
-    - `follow_user_followers: Obtains the list of followers of a specific user
-                              and follows them.
-"""
 import datetime
 import logging
 from typing import Dict, Iterable, Optional
@@ -18,18 +9,21 @@ from .pages.auth import AuthPage
 from .browser import get_browser
 from .constants import INSTAGRAM_HOMEPAGE_URL
 from .following import follow_users
-from .logging import PYGRAM_LOG_FORMATTER, PygramLoggerContextFilter
-from pygram.queries.graphql import GraphQLAPI
-from pygram.queries.user import GetUserDataQuery
+from .logging import INSTAMATE_LOG_FORMATTER, InstamateLoggerContextFilter
+from instamate.queries.graphql import GraphQLAPI
+from instamate.queries.user import GetUserDataQuery
 
 
-logger = logging.getLogger("pygram")
+logger = logging.getLogger("instamate")
 
 
-class Pygram:
-    """Initializes a Pygram session."""
+class Instamate:
+    """Initializes an Instamate session with a browser.
 
-    def __init__(self, username: str, password: str):
+    Browser will be closed when the session finishes.
+    """
+
+    def __init__(self, username: str, password: str) -> None:
         """
         Args:
             username (str): Instagram username of the user to authenticate as.
@@ -74,11 +68,11 @@ class Pygram:
         logger.setLevel(logging.DEBUG)
 
         handler = logging.StreamHandler()
-        handler.setFormatter(PYGRAM_LOG_FORMATTER)
+        handler.setFormatter(INSTAMATE_LOG_FORMATTER)
 
         # Filters attached to the parent logger DO NOT propagate to child loggers, this is why we
         # attach the filter to the handler instead.
-        handler.addFilter(PygramLoggerContextFilter(self.username))
+        handler.addFilter(InstamateLoggerContextFilter(self.username))
         logger.addHandler(handler)
 
     def _load_cookies(self) -> None:
@@ -161,7 +155,7 @@ class Pygram:
         """
         Unfollow users that this account is following.
 
-        For now only unfollow users that have been followed through Pygram, and that DON'T
+        For now only unfollow users that have been followed through Instamate, and that DON'T
         follow back this account.
 
         :param until_datetime: Only unfollow users that were followed at this datetime and

@@ -19,7 +19,7 @@ from ..xpath import FOLLOW_BUTTON_XPATH
 from .base import BaseInstagramPage
 
 
-logger = logging.getLogger("pygram." + __name__)
+logger = logging.getLogger("instamate." + __name__)
 
 
 class InstagramUserOperationError(Exception):

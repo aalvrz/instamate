@@ -3,8 +3,8 @@ import logging
 import time
 from typing import Iterable
 
-from pygram.constants import FollowingStatus
-from pygram.pages.profile import UserProfilePage
+from instamate.constants import FollowingStatus
+from instamate.pages.profile import UserProfilePage
 
 
 FOLLOW_USER_WAIT_TIME = 60

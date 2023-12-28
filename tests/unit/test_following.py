@@ -1,4 +1,4 @@
-from pygram.following import FollowParameters
+from instamate.following import FollowParameters
 
 
 class TestFollowParameters:

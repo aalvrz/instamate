@@ -3,7 +3,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from pygram import Pygram
+from instamate import Instamate
 
 
 load_dotenv()
@@ -21,5 +21,5 @@ if __name__ == "__main__":
     except IndexError:
         raise ValueError("You must provide an Instagram username to get data from")
 
-    with Pygram(ig_username, ig_password) as pygram:
-        pygram.follow_user_followers(username)
+    with Instamate(ig_username, ig_password) as instamate:
+        instamate.follow_user_followers(username)

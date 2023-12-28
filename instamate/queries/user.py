@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 import httpx
 
-from pygram.browser import get_browser
+from instamate.browser import get_browser
 
 
 class GetUserDataQuery:

@@ -12,15 +12,15 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from pygram.browser import get_browser
-from pygram.cookies import save_user_cookies
-from pygram.exceptions import PygramException
+from instamate.browser import get_browser
+from instamate.cookies import save_user_cookies
+from instamate.exceptions import InstamateException
 
 
 logger = logging.getLogger(__name__)
 
 
-class AuthenticationError(PygramException):
+class AuthenticationError(InstamateException):
     """Error raised when user authentication fails."""
 
 
