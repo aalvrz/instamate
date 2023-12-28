@@ -152,6 +152,8 @@ class Pygram:
     ) -> None:
         """Follows all the followers of a specific user."""
 
+        logger.info("Preparing to follow %d followers of user @%s" % (amount, username))
+
         users = self.get_user_followers(username)
         follow_users(users, amount)
 
