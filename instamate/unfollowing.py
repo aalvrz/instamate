@@ -3,7 +3,6 @@ import logging
 import time
 from typing import Set
 
-from .db import get_database
 from .following import (
     FOLLOW_USER_WAIT_TIME,
     FOLLOW_COUNT_PAUSE_THRESHOLD,
