@@ -214,25 +214,22 @@ class UserProfilePage(BaseInstagramPage):
 
         :raises UnfollowUserError: If user can't be unfollowed.
         """
-        self.go()
-
         try:
-            button = self.browser.find_element_by_xpath("//button[text() = 'Following']")
+            button = self.browser.find_element(By.XPATH, "//button[text() = 'Following']")
         except NoSuchElementException:
             try:
-                button = self.browser.find_element_by_xpath(
-                    "//button/div/span[contains(@aria-label, 'Following')]"
+                button = self.browser.find_element(
+                    By.XPATH, "//button/div/span[contains(@aria-label, 'Following')]"
                 )
             except NoSuchElementException:
-                raise UnfollowUserError("Cannot locate unfollow button")
+                raise UnfollowUserError
 
         button.click()
-
-        # Confirm unfollow
         time.sleep(2)
 
-        unfollow_button = self.browser.find_element_by_xpath(
-            "//button[text()='Unfollow']"
+        # Confirm unfollow dialog
+        unfollow_button = self.browser.find_element(
+            By.XPATH, "//button[text()='Unfollow']"
         )
         unfollow_button.click()
 

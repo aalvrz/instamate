@@ -1,15 +1,9 @@
 """Actions related to following users."""
 import logging
-import time
-from typing import Iterable
+from typing import Iterable, Sequence
 
 from instamate.constants import FollowingStatus
-from instamate.pages.profile import UserProfilePage
-
-
-FOLLOW_USER_WAIT_TIME = 60
-FOLLOW_BREAK_WAIT_TIME = 600
-FOLLOW_COUNT_PAUSE_THRESHOLD = 20
+from instamate.pages.profile import UnfollowUserError, UserProfilePage
 
 
 logger = logging.getLogger(__name__)
@@ -27,8 +21,6 @@ def follow_users(users: Iterable[str], amount: int) -> None:
         user_page = UserProfilePage(username)
         user_page.go()
 
-        time.sleep(3)
-
         following_status = user_page.get_following_status()
 
         if following_status != FollowingStatus.NOT_FOLLOWING:
@@ -44,3 +36,29 @@ def follow_users(users: Iterable[str], amount: int) -> None:
             break
 
     logger.info("Finished following %d users" % follow_count)
+
+
+def unfollow_users(users: Sequence[str]) -> None:
+    """Navigates to each user in a list of users and proceeds to unfollow them."""
+
+    for username in users:
+        user_page = UserProfilePage(username)
+        user_page.go()
+
+        following_status = user_page.get_following_status()
+
+        if following_status != FollowingStatus.FOLLOWING:
+            logger.warning(
+                "You are not following '%s'. Skipping unfollow action." % username
+            )
+            continue
+
+        try:
+            user_page.unfollow()
+        except UnfollowUserError:
+            logger.error("Could not unfollow user '%s'" % username)
+            continue
+
+        logger.info("Unfollowed user '%s'" % username)
+
+    logger.info("Finished unfollowing %d users" % len(users))
