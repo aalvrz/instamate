@@ -1,1 +1,2 @@
--r requirements/dev.txt
+selenium==4.15.2
+python-dotenv==0.20.0
