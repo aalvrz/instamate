@@ -6,3 +6,7 @@ exclude = [
     "venv",
     "scripts",
 ]
+
+[tool.ruff]
+line-length = 90
+indent-width = 4
