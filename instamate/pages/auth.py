@@ -14,7 +14,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from instamate.browser import get_browser
 from instamate.cookies import save_user_cookies
+from instamate.constants import INSTAGRAM_HOMEPAGE_URL
 from instamate.exceptions import InstamateException
+from instamate.pages.base import BaseInstagramPage
 
 
 logger = logging.getLogger(__name__)
@@ -24,10 +26,14 @@ class AuthenticationError(InstamateException):
     """Error raised when user authentication fails."""
 
 
-class AuthPage:
+class AuthPage(BaseInstagramPage):
     """Allows logging-in using Instagram's log-in screen."""
 
+    link = INSTAGRAM_HOMEPAGE_URL
+
     def __init__(self, username: str, password: str) -> None:
+        super().__init__()
+
         self.username = username
         self.password = password
 

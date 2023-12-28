@@ -7,7 +7,6 @@ import httpx
 from .cookies import load_user_cookies
 from .pages.auth import AuthPage
 from .browser import get_browser
-from .constants import INSTAGRAM_HOMEPAGE_URL
 from .following import follow_users
 from .logging import INSTAMATE_LOG_FORMATTER, InstamateLoggerContextFilter
 from instamate.queries.graphql import GraphQLAPI
@@ -42,9 +41,6 @@ class Instamate:
         logger.info("Initializing new Instamate session for user '%s'" % self.username)
 
         self.browser.implicitly_wait(5)
-        self.browser.get(INSTAGRAM_HOMEPAGE_URL)
-
-        self._load_cookies()
 
         self._login()
 
@@ -89,8 +85,11 @@ class Instamate:
     def _login(self):
         """Login the user using the crendetials provided."""
 
-        authenticator = AuthPage(self.username, self.password)
-        authenticator.login()
+        auth_page = AuthPage(self.username, self.password)
+        auth_page.go()
+
+        self._load_cookies()
+        auth_page.login()
 
     def get_instagram_user_id(self, username: str) -> str | None:
         """Returns the Instagram PK user ID.
