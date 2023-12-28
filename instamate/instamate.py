@@ -64,7 +64,7 @@ class Instamate:
 
         self.http_client = httpx.Client(cookies=cookies)
 
-    def _setup_logger(self):
+    def _setup_logger(self) -> None:
         logger.setLevel(logging.DEBUG)
 
         handler = logging.StreamHandler()
