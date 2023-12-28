@@ -30,9 +30,7 @@ class GraphQLAPI:
         )
         return followers
 
-    def get_followings(
-        self, user_id: str, randomize: Optional[bool] = True
-    ) -> Set[str]:
+    def get_followings(self, user_id: str, randomize: Optional[bool] = True) -> Set[str]:
         followings = self._get_users(
             user_id, "edge_follow", GET_FOLLOWINGS_QUERY_HASH, randomize
         )

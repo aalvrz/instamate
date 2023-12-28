@@ -157,9 +157,7 @@ class Pygram:
         users = self.get_user_followers(username)
         follow_users(users, amount)
 
-    def unfollow_users(
-        self, until_datetime: Optional[datetime.datetime] = None
-    ) -> None:
+    def unfollow_users(self, until_datetime: Optional[datetime.datetime] = None) -> None:
         """
         Unfollow users that this account is following.
 

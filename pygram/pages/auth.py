@@ -67,9 +67,7 @@ class AuthPage:
         :raises: AuthenticationError if no login element is found.
         """
         try:
-            login_element = get_browser().find_element(
-                By.XPATH, "//div[text()='Log in']"
-            )
+            login_element = get_browser().find_element(By.XPATH, "//div[text()='Log in']")
         except NoSuchElementException:
             raise AuthenticationError("Unable to locate log in element")
 

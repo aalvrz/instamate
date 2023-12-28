@@ -125,9 +125,7 @@ class UserProfilePage(BaseInstagramPage):
                 "ProfilePage[0].graphql.user.edge_followed_by.count"
             )
         except WebDriverException as ex:
-            logger.warning(
-                "Could not get %s's followers count: %s" % (self.username, ex)
-            )
+            logger.warning("Could not get %s's followers count: %s" % (self.username, ex))
 
         return followers_count
 
@@ -224,9 +222,7 @@ class UserProfilePage(BaseInstagramPage):
         time.sleep(5)
 
         try:
-            button = get_browser().find_element_by_xpath(
-                "//button[text() = 'Following']"
-            )
+            button = get_browser().find_element_by_xpath("//button[text() = 'Following']")
         except NoSuchElementException:
             try:
                 button = get_browser().find_element_by_xpath(
