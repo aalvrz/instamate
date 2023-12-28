@@ -57,6 +57,7 @@ class AuthPage:
             raise AuthenticationError
 
         save_user_cookies(self.username, get_browser().get_cookies())
+        logger.info("Logged in successfully as '%s" % self.username)
 
     def _find_create_account_or_login_div(self):
         """

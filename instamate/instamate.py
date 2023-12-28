@@ -39,6 +39,8 @@ class Instamate:
         self.user_ids_cache: Dict[str, str] = {}
 
     def __enter__(self):
+        logger.info("Initializing new Instamate session for user '%s'" % self.username)
+
         self.browser.implicitly_wait(5)
         self.browser.get(INSTAGRAM_HOMEPAGE_URL)
 
@@ -89,8 +91,6 @@ class Instamate:
 
         authenticator = AuthPage(self.username, self.password)
         authenticator.login()
-
-        logger.info("Logged in successfully.")
 
     def get_instagram_user_id(self, username: str) -> str | None:
         """Returns the Instagram PK user ID.

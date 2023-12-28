@@ -2,7 +2,7 @@ import logging
 
 
 INSTAMATE_LOG_FORMATTER = logging.Formatter(
-    "[%(asctime)s] %(name)-5s %(levelname)s [%(username)s]: %(message)s",
+    "[%(asctime)s] %(name)-5s [%(username)s] %(levelname)s: %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
