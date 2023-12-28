@@ -1,9 +1,9 @@
 """Script that outputs common followers between two users."""
 import os
+import sys
 
 from dotenv import load_dotenv
 
-from instamate.pages.profile import UserProfilePage
 from instamate import Instamate
 
 
@@ -14,14 +14,15 @@ PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
 
 
 if __name__ == "__main__":
-    instamate = Instamate(USERNAME, PASSWORD)
+    with Instamate(USERNAME, PASSWORD) as instamate:
+        try:
+            user1 = sys.argv[1]
+            user2 = sys.argv[2]
+        except IndexError:
+            raise ValueError("You must provide two Instagram usernames to get data from")
 
-    with instamate:
-        u1 = UserProfilePage("someuser1")
-        u1_followers = u1.get_followers()
-
-        u2 = UserProfilePage("someuser2")
-        u2_followers = u2.get_followers()
+        user1_followers = instamate.get_user_followers(user1)
+        user2_followers = instamate.get_user_followers(user2)
 
         print("Common Followers:")
-        print(set(u1_followers) & set(u2_followers))
+        print(user1_followers & user2_followers)

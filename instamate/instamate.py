@@ -1,6 +1,6 @@
 import datetime
 import logging
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Set
 
 import httpx
 
@@ -113,26 +113,26 @@ class Instamate:
 
         return user_id
 
-    def get_user_followers(self, username: str) -> Iterable[str]:
+    def get_user_followers(self, username: str) -> Set[str]:
         logger.info("Fetching all followers for user '%s'" % username)
 
         user_id = self.get_instagram_user_id(username)
 
         if not user_id:
             logger.error("Could not get user_id from query")
-            return []
+            return set()
 
         followers = GraphQLAPI(self.http_client).get_followers(user_id)
         return followers
 
-    def get_user_followings(self, username: str) -> Iterable[str]:
+    def get_user_followings(self, username: str) -> Set[str]:
         logger.info("Fetching all followings for user '%s'" % username)
 
         user_id = self.get_instagram_user_id(username)
 
         if not user_id:
             logger.error("Could not get user_id from query")
-            return []
+            return set()
 
         followings = GraphQLAPI(self.http_client).get_followings(user_id)
         return followings
