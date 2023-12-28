@@ -14,11 +14,20 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from instamate.exceptions import InstamateException
 from ..constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
-from ..xpath import FOLLOW_BUTTON_XPATH
 from .base import BaseInstagramPage
 
 
 logger = logging.getLogger(__name__)
+
+
+FOLLOW_BUTTON_XPATH = """
+    //div[text()='Following' or
+        text()='Requested' or
+        text()='Follow' or
+        text()='Follow Back' or
+        text()='Unblock' or
+        text()='Message']
+"""
 
 
 class UserProfilePage(BaseInstagramPage):
