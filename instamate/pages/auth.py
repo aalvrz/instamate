@@ -159,10 +159,12 @@ class AuthPage(BaseInstagramPage):
         """Clicks on the 'Save Login Info' dialog button so that Instagrams saves the auth session."""
 
         save_login_info_btn = get_browser().find_element(
-            By.XPATH, "//button[text()='Save Info']"
+            By.XPATH, "//button[text()='Save info']"
         )
 
         if save_login_info_btn:
+            logger.info("Instagram asked if it save login info. Proceeding to save info")
+
             ActionChains(get_browser()).move_to_element(
                 save_login_info_btn
             ).click().perform()
