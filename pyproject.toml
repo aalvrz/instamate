@@ -2,10 +2,7 @@
 python_version = "3.10"
 warn_return_any = false
 warn_unused_configs = true
-exclude = [
-    "venv",
-    "examples",
-]
+exclude = ["venv", ".venv", "examples"]
 
 [tool.ruff]
 line-length = 90
