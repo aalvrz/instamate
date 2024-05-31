@@ -2,7 +2,7 @@ import json
 import logging
 import random
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import httpx
 
@@ -21,25 +21,25 @@ class GraphQLAPI:
         "https://www.instagram.com/graphql/query/?query_hash={query_hash}"
     )
 
-    def __init__(self, client: httpx.Client):
+    def __init__(self, client: httpx.Client) -> None:
         self.client = client
 
-    def get_followers(self, user_id: str, randomize: Optional[bool] = True) -> Set[str]:
+    def get_followers(self, user_id: str, randomize: bool | None = True) -> set[str]:
         followers = self._get_users(
             user_id, "edge_followed_by", GET_FOLLOWERS_QUERY_HASH, randomize
         )
         return followers
 
-    def get_followings(self, user_id: str, randomize: Optional[bool] = True) -> Set[str]:
+    def get_followings(self, user_id: str, randomize: bool | None = True) -> set[str]:
         followings = self._get_users(
             user_id, "edge_follow", GET_FOLLOWINGS_QUERY_HASH, randomize
         )
         return followings
 
     def _get_users(
-        self, user_id: str, key: str, query_hash: str, randomize: Optional[bool] = True
-    ) -> Set[str]:
-        users: List[str] = []
+        self, user_id: str, key: str, query_hash: str, randomize: bool | None = True
+    ) -> set[str]:
+        users: list[str] = []
 
         params = {
             "id": user_id,
@@ -54,8 +54,8 @@ class GraphQLAPI:
                 time.sleep(random.randint(2, 6))
 
             users_data = self._get_page_data(params, key, query_hash)
-            users_page: List[Dict[str, Any]] = users_data["edges"]
-            users_list: List[str] = [user["node"]["username"] for user in users_page]
+            users_page: list[dict[str, Any]] = users_data["edges"]
+            users_list: list[str] = [user["node"]["username"] for user in users_page]
             users.extend(users_list)
 
             has_next_page = users_data["page_info"]["has_next_page"]
@@ -72,8 +72,8 @@ class GraphQLAPI:
         return set(users)
 
     def _get_page_data(
-        self, params: Dict[str, Any], key: str, query_hash: str
-    ) -> Dict[str, Any]:
+        self, params: dict[str, Any], key: str, query_hash: str
+    ) -> dict[str, Any]:
         url = self.base_graphql_query_url.format(
             query_hash=query_hash
         ) + f"&variables={json.dumps(params)}"
