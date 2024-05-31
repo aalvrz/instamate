@@ -1,10 +1,11 @@
 import datetime
 import logging
-from typing import Dict, Iterable, Set
+from typing import Dict, Set
 
 import httpx
 
-from .cookies import load_user_cookies
+from instamate.workspace import Workspace
+
 from .pages.auth import AuthPage
 from .browser import get_browser
 from .following import follow_users
@@ -34,6 +35,7 @@ class Instamate:
         self._setup_logger()
 
         self.browser = get_browser()
+        self.workspace = Workspace(username)
 
         self.user_ids_cache: Dict[str, str] = {}
 
@@ -76,7 +78,7 @@ class Instamate:
     def _load_cookies(self) -> None:
         """Attempts to load any local saved cookies for the current session user."""
 
-        cookies = load_user_cookies(self.username)
+        cookies = self.workspace.load_user_cookies()
         for cookie in cookies:
             self.browser.add_cookie(cookie)
 

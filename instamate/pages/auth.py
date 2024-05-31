@@ -13,10 +13,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from instamate.browser import get_browser
-from instamate.cookies import save_user_cookies
 from instamate.constants import INSTAGRAM_HOMEPAGE_URL
 from instamate.exceptions import InstamateException
 from instamate.pages.base import BaseInstagramPage
+from instamate.workspace import Workspace
 
 
 logger = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class AuthPage(BaseInstagramPage):
         if not self.is_user_logged_in():
             raise AuthenticationError
 
-        save_user_cookies(self.username, get_browser().get_cookies())
+        Workspace(self.username).save_user_cookies(get_browser().get_cookies())
         logger.info("Logged in successfully as '%s" % self.username)
 
     def _find_create_account_or_login_div(self):
