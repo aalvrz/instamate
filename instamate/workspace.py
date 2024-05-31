@@ -22,7 +22,7 @@ class Workspace:
         self._create_workspace_dir()
         self.cookies_file_path = self._create_cookies_dir()
 
-    def _create_workspace_dir(self):
+    def _create_workspace_dir(self) -> None:
         try:
             os.mkdir(self.path)
         except FileExistsError:

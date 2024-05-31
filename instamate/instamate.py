@@ -1,17 +1,15 @@
 import datetime
 import logging
-from typing import Dict, Set
 
 import httpx
 
-from instamate.workspace import Workspace
-
-from .pages.auth import AuthPage
-from .browser import get_browser
-from .following import follow_users
-from .logging import INSTAMATE_LOG_FORMATTER, InstamateLoggerContextFilter
+from instamate.browser import get_browser
+from instamate.following import follow_users
+from instamate.logging import INSTAMATE_LOG_FORMATTER, InstamateLoggerContextFilter
+from instamate.pages.auth import AuthPage
 from instamate.queries.graphql import GraphQLAPI
 from instamate.queries.user import GetUserDataQuery
+from instamate.workspace import Workspace
 
 
 logger = logging.getLogger("instamate")
@@ -37,7 +35,7 @@ class Instamate:
         self.browser = get_browser()
         self.workspace = Workspace(username)
 
-        self.user_ids_cache: Dict[str, str] = {}
+        self.user_ids_cache: dict[str, str] = {}
 
     def __enter__(self):
         logger.info("Initializing new Instamate session for user '%s'" % self.username)
@@ -115,7 +113,7 @@ class Instamate:
 
         return user_id
 
-    def get_user_followers(self, username: str) -> Set[str]:
+    def get_user_followers(self, username: str) -> set[str]:
         logger.info("Fetching all followers for user '%s'" % username)
 
         user_id = self.get_instagram_user_id(username)
@@ -127,7 +125,7 @@ class Instamate:
         followers = GraphQLAPI(self.http_client).get_followers(user_id)
         return followers
 
-    def get_user_followings(self, username: str) -> Set[str]:
+    def get_user_followings(self, username: str) -> set[str]:
         logger.info("Fetching all followings for user '%s'" % username)
 
         user_id = self.get_instagram_user_id(username)
