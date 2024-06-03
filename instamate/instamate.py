@@ -48,7 +48,7 @@ class Instamate:
 
         return self
 
-    def __exit__(self, type, exc_value, traceback):
+    def __exit__(self, type, exc_value, traceback) -> None:
         self.browser.quit()
         self.http_client.close()
 
@@ -82,7 +82,7 @@ class Instamate:
 
         self.browser.refresh()
 
-    def _login(self):
+    def _login(self) -> None:
         """Login the user using the crendetials provided."""
 
         auth_page = AuthPage(self.username, self.password)
