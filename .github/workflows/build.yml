@@ -1,0 +1,24 @@
+name: build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip
+
+      - name: Ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          version: 0.4.8
+
+      - name: Mypy
+        run: mypy --disable-error-code "annotation-unchecked" .
