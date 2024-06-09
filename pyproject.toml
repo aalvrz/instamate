@@ -1,3 +1,12 @@
+[project]
+name = "instamate"
+authors = [{ name = "Andres Alvarez", email = "andresalvarez353@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["instagram", "bot"]
+
+dependencies = ["httpx", "python-dotenv", "selenium"]
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = false
