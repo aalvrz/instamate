@@ -25,12 +25,16 @@ class GraphQLAPI:
         self.client = client
 
     def get_followers(self, user_id: str, randomize: bool | None = True) -> set[str]:
+        logger.info("Obtaining followers for user '%s'" % user_id)
+
         followers = self._get_users(
             user_id, "edge_followed_by", GET_FOLLOWERS_QUERY_HASH, randomize
         )
         return followers
 
     def get_followings(self, user_id: str, randomize: bool | None = True) -> set[str]:
+        logger.info("Obtaining followings for user '%s'" % user_id)
+
         followings = self._get_users(
             user_id, "edge_follow", GET_FOLLOWINGS_QUERY_HASH, randomize
         )
@@ -78,7 +82,7 @@ class GraphQLAPI:
             query_hash=query_hash
         ) + f"&variables={json.dumps(params)}"
 
-        logger.info("Requesting new page '%s'" % url)
+        logger.debug("Requesting new page '%s'" % url)
 
         response = self.client.get(url)
         data = response.json()
