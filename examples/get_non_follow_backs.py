@@ -32,4 +32,8 @@ if __name__ == "__main__":
         followings = instamate.get_user_followings(username)
 
     results = followings - followers
-    print(results)
+
+    for i, result in enumerate(results):
+        print(f"{i}. {result}")
+
+    print("Done.")
