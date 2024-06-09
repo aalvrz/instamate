@@ -1,4 +1,4 @@
-# Instamate ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)
+# Instamate ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg) [![build](https://github.com/aalvrz/instamate/actions/workflows/build.yml/badge.svg)](https://github.com/aalvrz/instamate/actions/workflows/build.yml)
 
 ## Installing a web driver
 
