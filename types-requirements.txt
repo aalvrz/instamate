@@ -1,0 +1,5 @@
+types-cffi==1.16.0.20240331
+types-docutils==0.21.0.20240423
+types-Pygments==2.18.0.20240506
+types-pyOpenSSL==24.1.0.20240425
+types-setuptools==70.0.0.20240524

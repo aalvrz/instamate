@@ -25,5 +25,4 @@ jobs:
 
       - name: Mypy
         run: |
-          mypy --install-types
           mypy --disable-error-code "annotation-unchecked" .
