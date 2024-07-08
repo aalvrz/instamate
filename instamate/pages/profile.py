@@ -1,20 +1,17 @@
 """Interactions with Instagram users."""
+
 import logging
 import time
 from functools import lru_cache
 
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    TimeoutException,
-    WebDriverException,
-)
+from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from instamate.exceptions import InstamateException
-from ..constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
-from .base import BaseInstagramPage
+from instamate.constants import INSTAGRAM_HOMEPAGE_URL, FollowingStatus
+from instamate.pages.base import BaseInstagramPage
 
 
 logger = logging.getLogger(__name__)
@@ -54,12 +51,9 @@ class UserProfilePage(BaseInstagramPage):
 
         :returns: A FollowingStatus enum value representing the following status.
         """
-        try:
-            follow_button_elem = WebDriverWait(self.browser, 10).until(
-                EC.presence_of_element_located((By.XPATH, FOLLOW_BUTTON_XPATH))
-            )
-        except TimeoutException:
-            raise
+        follow_button_elem = WebDriverWait(self.browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, FOLLOW_BUTTON_XPATH))
+        )
 
         status_txt = follow_button_elem.text
         following_status = FollowingStatus(status_txt)
