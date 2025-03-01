@@ -172,7 +172,7 @@ class AuthPage(BaseInstagramPage):
     def is_user_logged_in(self) -> bool:
         # Use the "Your Story" element to determine if user is already logged in
         try:
-            element = get_browser().find_element(By.XPATH, "//div[text()='Your story']")
+            element = get_browser().find_element(By.XPATH, "//span[text()='Your story']")
             if element:
                 return True
         except NoSuchElementException:
